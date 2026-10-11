@@ -1004,6 +1004,11 @@ function inferBodyProtection(p) {
   return Number(p?.bonusDef || 0) > 0 || /chassis|blindage|plaque|carapace/.test(text);
 }
 
+function isChassisPiece(p) {
+  const name = `${p?.name ?? ""} ${p?.type ?? ""}`;
+  return /chassis/i.test(name.normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+}
+
 function pieceEntry(machineKey, machine, p) {
   const props = {
     H0D_Composant_Type: p.type,
@@ -1013,6 +1018,9 @@ function pieceEntry(machineKey, machine, p) {
     H0D_Composant_Etat: "Intact",
     H0D_Composant_Destructible: true,
     H0D_Composant_Detachable: !!p.detachable,
+    H0D_Composant_Recuperable: !!p.detachable && !isChassisPiece(p) && p.recuperable !== false,
+    H0D_Composant_Loot: String(p.loot ?? ""),
+    H0D_Composant_Valeur: Number(p.lootValue ?? 0),
     H0D_Composant_Marquee: false,
     H0D_Composant_Compte_PV: !!p.countPV,
     H0D_Composant_Protection_Corps: inferBodyProtection(p),
