@@ -1,3 +1,9 @@
+## 0.7.2 — Propriétés explicites de récupération
+- Les pièces générées reçoivent Recuperable, Loot et Valeur.
+- Les châssis sont toujours non récupérables.
+- L'attribut Detachable et les propriétés de protection/Intégrité sont conservés.
+- La commande d'assemblage existante recrée les pièces embarquées : ne pas l'exécuter sur une machine déjà engagée en combat.
+
 # Changelog
 
 ## 0.7.1
