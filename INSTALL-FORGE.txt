@@ -1,0 +1,34 @@
+H0D MACHINE BUILDER 0.4.0 — THE FORGE
+======================================
+
+Pour mettre à jour le dépôt GitHub :
+
+1. Remplacer le contenu du dépôt par les fichiers de ce pack.
+2. Commit / push sur main.
+3. Créer le tag/release : v0.7.0.
+4. Le workflow GitHub crée automatiquement :
+   - module.json
+   - h0d-machine-builder.zip
+5. The Forge peut mettre à jour depuis :
+   https://github.com/freeberserk/h0d-machine-builder/releases/latest/download/module.json
+
+TEST RECOMMANDÉ BAC-À-SABLE
+---------------------------
+1. Activer H0D Template Manager v0.3.0+ et vérifier ses templates.
+2. Mettre Machine Builder à jour et recharger le monde.
+3. Lancer `H0D — Générateur composants`.
+4. Vérifier que la source affichée est `H0D Template Manager`.
+5. Bibliothèque → Toutes les Menace 2 → Mettre à jour.
+6. Assembler → Toutes les Menace 2 → Mettre à jour.
+7. Vérifier :
+   - Redeye Watcher : 10 + 14 = 24 PV ; DEF 10 + châssis 1 = 11 ; ATQ +4.
+   - Broadhead : 10 + 16 = 26 PV ; DEF 11 ; ruade 15 m ; Charge de troupeau présente.
+   - Scrapper blessé : 9 + 15 = 24 PV ; DEF 11 ; batterie instable Choc ; Cri parasite spécial.
+   - Scrapper standard/intact : 11 + 18 = 29 PV ; DEF 10 + châssis 2 = 12.
+8. Vérifier les cases Attaque spéciale sur les techniques concernées.
+9. Vérifier que les images personnalisées restent en place en mode Mettre à jour.
+10. Vérifier que les Actors sont rangés dans `H0D — Machines assemblées/Menace 2`.
+
+NOTE SOURCE
+-----------
+Le Builder ne fabrique pas de chiffres absents des fiches validées. Une recharge décrite comme `Scène` est conservée en note car le champ CSB de recharge est numérique.
