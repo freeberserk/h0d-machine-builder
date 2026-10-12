@@ -169,3 +169,21 @@ Le Builder renseigne automatiquement :
 
 Les châssis, blindages/plaques/carapaces et les pièces apportant un bonus de DEF sont considérés
 comme protections du corps. Les PV globaux historiques des machines ne sont pas modifiés.
+
+
+## v0.8.0 — Chaîne canonique des pièces
+
+Le Builder initialise maintenant la partie **récupération** de chaque pièce au moment de sa création.
+
+Chaîne attendue :
+
+```text
+Machine Builder
+  → PV max / PV actuels + État Intact
+  → Machine Health Manager fait évoluer PV + État
+  → H0D Loot lit l'état réel final et le rendement de récupération
+```
+
+Pour une pièce détachable/récupérable, `H0D_Composant_Loot` reçoit la ressource secondaire canonique lorsque celle-ci peut être déterminée. Les champs déjà présents du template Pièce v2.6 sont utilisés : aucun nouveau template n'est nécessaire.
+
+Le Builder n'invente pas l'élément d'un réservoir ambigu : la validation le signale afin qu'il puisse être précisé plus tard avec un `loot` explicite dans sa définition.
