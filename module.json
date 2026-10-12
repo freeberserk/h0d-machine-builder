@@ -1,8 +1,8 @@
 {
   "id": "h0d-machine-builder",
   "title": "H0D Machine Builder",
-  "description": "Générateur de machines H0D — Menaces 1 à 3, tailles canoniques, zones anatomiques et protections de corps pour Intégrité v2 / Template Manager 1.3+.",
-  "version": "0.7.2",
+  "description": "Générateur de machines H0D — Menaces 1 à 3, Intégrité v2 et chaîne complète création → PV → état → récupération/loot.",
+  "version": "0.8.0",
   "authors": [
     {
       "name": "JDR Zero Dawn"
