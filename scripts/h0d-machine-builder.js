@@ -596,7 +596,7 @@ const MACHINES = {
       notes: "Bond / déplacement agressif : 15 m. Harcèlement de meute : si au moins 2 Scroungers ciblent le même ennemi, le premier qui touche donne +1 ATQ au suivant contre cette cible jusqu'à la fin du round."
     },
     pieces: [
-      {name:"Canon plasma", type:"Autre", location:"Dos / épaules", pv:5, def:11, countPV:true, bonusDef:0, detachable:true,
+      {name:"Canon plasma", type:"Autre", location:"Dos / épaules", pv:5, def:11, countPV:true, bonusDef:0, detachable:true, loot:"Circuit ancien abîmé",
        effect:"Désactive Tir plasma et Tir de couverture plasma.", note:"Type source : Arme distante."},
       {name:"Batterie plasma", type:"Generateur", location:"Dos / flanc", pv:4, def:11, countPV:true, bonusDef:0, detachable:true,
        explosion:{type:"Energie", dmg:"1d6", radius:1.5, dc:14},
@@ -645,7 +645,7 @@ const MACHINES = {
       notes: "Fuite assistée : 15 m. Déclenche sa fuite si elle subit des dégâts, perd une pièce, ou est bloquée à moins de 6 m d'un ennemi. Si le module dorsal est détruit : cargaison perdue ou abandonnée. Si la balise est détruite : route du Creuset non automatique."
     },
     pieces: [
-      {name:"Museau extracteur", type:"Autre", location:"Tête", pv:4, def:12, countPV:true, bonusDef:0, detachable:true,
+      {name:"Museau extracteur", type:"Autre", location:"Tête", pv:4, def:12, countPV:true, bonusDef:0, detachable:true, loot:"Plaques métalliques",
        effect:"Ne peut plus collecter / arracher proprement.", note:"Type source : Outil."},
       {name:"Griffe gauche de récupération", type:"Structure", location:"Patte avant", pv:3, def:12, countPV:true, bonusDef:0, detachable:true,
        effect:"Attaque de griffes affaiblie.", note:"Type source : Arme / outil."},
