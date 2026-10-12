@@ -1,3 +1,19 @@
+## 0.8.0 — Boucle pièces machine : création → PV → état → loot
+- Le Builder renseigne désormais automatiquement `H0D_Composant_Loot` pour les pièces détachables/récupérables.
+- Un `loot` explicite dans une définition de pièce reste prioritaire sur toute inférence.
+- Table canonique embarquée :
+  - réservoir / bonbonne / poche élémentaire → fluide élémentaire correspondant ;
+  - batterie / réacteur / générateur / moteur → cellule d’énergie faible ;
+  - optique / radar / capteur visuel → lentilles optiques ;
+  - électronique / module / relais / balise / émetteur → circuit ancien abîmé ;
+  - structure / griffe / plaque / membre rigide → plaques métalliques ;
+  - élément souple / stabilisateur / câblage / filament → fibres synthétiques ;
+  - cœur / noyau → noyau de machine selon la catégorie Petite / Moyenne / Lourde.
+- Les pièces non détachables et les châssis restent non récupérables.
+- Les réservoirs dont l’élément n’est pas déterminable sont marqués `Fluide élémentaire` générique et signalés par la validation au lieu d’inventer Blaze/Chillwater/etc.
+- La validation du Builder signale aussi toute pièce récupérable dont la récupération n’est pas déterminée.
+- Aucun changement des PV, DEF, attaques ou données de Menace 1–3.
+
 ## 0.7.2 — Propriétés explicites de récupération
 - Les pièces générées reçoivent Recuperable, Loot et Valeur.
 - Les châssis sont toujours non récupérables.
