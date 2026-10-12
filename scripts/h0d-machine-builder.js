@@ -1,5 +1,5 @@
 const MODULE_ID = "h0d-machine-builder";
-const VERSION = "0.8.0";
+const VERSION = "0.9.0";
 const COMPONENT_PACK_LABEL = "H0D — Composants Machines";
 const WORLD_MACHINE_FOLDER = "H0D — Machines assemblées";
 
@@ -23,7 +23,7 @@ const TOKEN_SIZE_BY_CATEGORY = Object.freeze({
  */
 
 /*
- * H0D Machine Builder v0.8.0
+ * H0D Machine Builder v0.9.0
  * Foundry VTT v14 + Custom System Builder 6.x
  *
  * Menaces 1 à 3 complètes :
@@ -1107,6 +1107,18 @@ function inferPieceLoot(machine, p) {
 function pieceEntry(machineKey, machine, p) {
   const recoverable = !!p.detachable && !isChassisPiece(p) && p.recuperable !== false;
   const inferredLoot = recoverable ? inferPieceLoot(machine, p) : "";
+
+  const explosion = p.explosion
+    ? {
+        type:p.explosion.type ?? "Aucune",
+        dmg:p.explosion.dmg ?? "",
+        radius:Number(p.explosion.radius || 0),
+        dc:Number(p.explosion.dc ?? 15)
+      }
+    : p.blaze
+      ? {type:"Feu", dmg:"1d6", radius:1.5, dc:12}
+      : {type:"Aucune", dmg:"", radius:0, dc:15};
+
   const props = {
     H0D_Composant_Type: p.type,
     H0D_Composant_Emplacement: p.location,
@@ -1125,29 +1137,24 @@ function pieceEntry(machineKey, machine, p) {
     H0D_Composant_PV_Max: Number(p.pv),
     H0D_Composant_DEF_Base: Number(p.def),
     H0D_Composant_Bonus_DEF_Machine: Number(p.bonusDef || 0),
+    H0D_Composant_DD_Demontage: Number(p.ddDemontage ?? 15),
+    H0D_Composant_DD_Detachement: Number(p.ddDetachement ?? 15),
     H0D_Composant_Effet_Destruction: p.effect ?? "",
+    H0D_Composant_Effet_Detachement: p.detachEffect ?? "",
+    H0D_Composant_Explosion_Type: explosion.type,
+    H0D_Composant_Explosion_Degats: explosion.dmg,
+    H0D_Composant_Explosion_Rayon: explosion.radius,
+    H0D_Composant_Explosion_DD: explosion.dc,
     H0D_Composant_Notes: p.note ?? "",
     H0D_Composant_Malus_Perception_Destruction: Number(p.malusPerception || 0),
     H0D_Composant_Malus_Vitesse_Destruction: Number(p.malusSpeed || 0)
   };
 
-  if (p.explosion) {
-    props.H0D_Composant_Explosion_Type = p.explosion.type ?? "Aucune";
-    props.H0D_Composant_Explosion_Degats = p.explosion.dmg ?? "";
-    props.H0D_Composant_Explosion_Rayon = Number(p.explosion.radius || 0);
-    props.H0D_Composant_Explosion_DD = Number(p.explosion.dc || 0);
-  } else if (p.blaze) {
-    // Compatibilité avec les anciennes définitions.
-    props.H0D_Composant_Explosion_Type = "Feu";
-    props.H0D_Composant_Explosion_Degats = "1d6";
-    props.H0D_Composant_Explosion_Rayon = 1.5;
-    props.H0D_Composant_Explosion_DD = 12;
-  }
-
   return {name:p.name, props, machineKey, kind:"piece"};
 }
 
 function weaponEntry(machineKey, machine, w) {
+  const shotsMax = Number(w.shotsMax ?? 0);
   return {name:w.name, machineKey, kind:"weapon", props:{
     H0D_ArmeMachine_Mode: w.mode,
     H0D_ArmeMachine_Type: w.type,
@@ -1169,6 +1176,10 @@ function weaponEntry(machineKey, machine, w) {
     H0D_ArmeMachine_Zone: w.zone ?? "",
     H0D_ArmeMachine_Recharge: Number(w.recharge || 0),
     H0D_ArmeMachine_Recharge_Compteur: 0,
+    H0D_ArmeMachine_Tirs_Max: shotsMax,
+    H0D_ArmeMachine_Tirs_Restants: Number(w.shotsRemaining ?? shotsMax),
+    H0D_ArmeMachine_Effet_Destruction: w.destroyEffect ?? "",
+    H0D_ArmeMachine_Effet_Detachement: w.detachEffect ?? "",
     H0D_ArmeMachine_Effet_Special: w.effect ?? "",
     H0D_ArmeMachine_Notes: w.note ?? ""
   }};
@@ -1292,6 +1303,78 @@ async function generateLibraryOne(machineKey, mode="update") {
 
   await pack.getIndex({fields:["name","folder","img"]});
   return {pack, stats};
+}
+
+function canonicalEntryMap(machineKey) {
+  const machine = MACHINES[machineKey];
+  if (!machine) return new Map();
+  const entries = [
+    ...(machine.pieces ?? []).map(p => pieceEntry(machineKey, machine, p)),
+    ...(machine.weapons ?? []).map(w => weaponEntry(machineKey, machine, w))
+  ];
+  return new Map(entries.map(entry => [`${entry.kind}::${entry.name}`, entry]));
+}
+
+async function repairEmbeddedMissingOne(machineKey) {
+  const machine = MACHINES[machineKey];
+  if (!machine) throw new Error(`Machine inconnue : ${machineKey}`);
+
+  const aliases = machineKeyAliases(machineKey);
+  const actor = Array.from(game.actors ?? []).find(a =>
+    aliases.includes(a.getFlag(MODULE_ID,"machineKey")) &&
+    a.getFlag(MODULE_ID,"blueprint") === true
+  );
+
+  if (!actor) return {actors:0, items:0, props:0, skipped:0};
+
+  const canonical = canonicalEntryMap(machineKey);
+  const stats = {actors:1, items:0, props:0, skipped:0};
+
+  for (const item of actor.items ?? []) {
+    if (item.getFlag(MODULE_ID,"generated") !== true) continue;
+    const itemMachineKey = item.getFlag(MODULE_ID,"machineKey");
+    if (!aliases.includes(itemMachineKey)) continue;
+
+    const kind = item.getFlag(MODULE_ID,"kind");
+    const entry = canonical.get(`${kind}::${item.name}`);
+    if (!entry) {
+      stats.skipped++;
+      continue;
+    }
+
+    const current = item.system?.props ?? {};
+    const update = {};
+    let added = 0;
+
+    // Sécurité : compléter uniquement les clés totalement absentes.
+    // Jamais d'écrasement des PV actuels, états, marquages, recharges ou valeurs modifiées en jeu.
+    for (const [key,value] of Object.entries(entry.props)) {
+      if (Object.prototype.hasOwnProperty.call(current,key)) continue;
+      update[`system.props.${key}`] = clone(value);
+      added++;
+    }
+
+    if (!added) continue;
+    await item.update(update);
+    stats.items++;
+    stats.props += added;
+  }
+
+  return stats;
+}
+
+async function repairEmbeddedMissingSelection(machineSelection) {
+  const keys = selectionKeys(machineSelection);
+  const total = {actors:0, items:0, props:0, skipped:0};
+
+  for (const key of keys) {
+    // La bibliothèque sert de source canonique et reçoit d'abord les définitions complètes.
+    await generateLibraryOne(key, "update");
+    const stats = await repairEmbeddedMissingOne(key);
+    for (const field of Object.keys(total)) total[field] += Number(stats[field] || 0);
+  }
+
+  return total;
 }
 
 function actorProps(machine) {
@@ -1747,6 +1830,15 @@ async function runAction(action, machineSelection, mode) {
     return;
   }
 
+  if (action === "repair-missing") {
+    const total = await repairEmbeddedMissingSelection(machineSelection);
+    notify(
+      "info",
+      `H0D : synchronisation non destructive terminée — ${total.actors} machine(s), ${total.items} Item(s), ${total.props} champ(s) ajouté(s), ${total.skipped} entrée(s) non reconnue(s).`
+    );
+    return;
+  }
+
   let count = 0;
   for (const key of keys) {
     const result = await assembleMachineOne(key, mode);
@@ -1785,13 +1877,15 @@ async function openBuilder() {
             Armes machine : ${t.weapon}<br>
             Machine : ${t.machine}<br>
             Source : ${t.source}<br>
-            <span style="opacity:.8">Le mode « Mettre à jour » réapplique entièrement ces templates aux entrées générées.</span>
+            <span style="opacity:.8">Le mode « Mettre à jour » réapplique entièrement ces templates aux entrées générées.</span><br>
+            <span style="opacity:.8">« Synchroniser champs manquants » ne modifie jamais une valeur déjà présente sur les machines assemblées.</span>
           </div>`;
         })()}
         <div class="form-group">
           <label>Action</label>
           <select name="action">
             <option value="library">Générer / mettre à jour la bibliothèque</option>
+            <option value="repair-missing">Synchroniser champs manquants (non destructif)</option>
             <option value="assemble">Assembler machine complète</option>
           </select>
         </div>
@@ -1845,7 +1939,8 @@ Hooks.once("ready", async () => {
     generateLibrary: generateLibraryOne,
     assemble: assembleMachineOne,
     machines: MACHINES,
-    validate: key => machineWarnings(MACHINES[key])
+    validate: key => machineWarnings(MACHINES[key]),
+    repairMissing: repairEmbeddedMissingOne
   };
   await ensureLauncherMacro();
   if (game.user.isGM) console.log(`${MODULE_ID} | v${VERSION} prêt`);
