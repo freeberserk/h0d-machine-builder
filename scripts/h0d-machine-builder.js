@@ -1,4 +1,5 @@
 const MODULE_ID = "h0d-machine-builder";
+const VERSION = "0.8.0";
 const COMPONENT_PACK_LABEL = "H0D — Composants Machines";
 const WORLD_MACHINE_FOLDER = "H0D — Machines assemblées";
 
@@ -22,7 +23,7 @@ const TOKEN_SIZE_BY_CATEGORY = Object.freeze({
  */
 
 /*
- * H0D Machine Builder v0.7.1
+ * H0D Machine Builder v0.8.0
  * Foundry VTT v14 + Custom System Builder 6.x
  *
  * Menaces 1 à 3 complètes :
@@ -780,6 +781,15 @@ function machineWarnings(machine) {
   if (Number(machine.actor.bodyPV) + Number(machine.actor.declaredModulesPV) !== Number(machine.actor.sourceMaxPV)) {
     warnings.push(`PV max source ${machine.actor.sourceMaxPV} ≠ corps ${machine.actor.bodyPV} + modules annoncés ${machine.actor.declaredModulesPV}.`);
   }
+
+  for (const p of machine.pieces ?? []) {
+    const recoverable = !!p.detachable && !isChassisPiece(p) && p.recuperable !== false;
+    if (!recoverable) continue;
+    const loot = inferPieceLoot(machine, p);
+    if (!loot) warnings.push(`Récupération non définie pour « ${p.name} ».`);
+    else if (loot === "Fluide élémentaire") warnings.push(`Élément du fluide à préciser pour « ${p.name} ».`);
+  }
+
   return warnings;
 }
 
@@ -1009,7 +1019,94 @@ function isChassisPiece(p) {
   return /chassis/i.test(name.normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
 }
 
+function normPartText(value) {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[’']/g, " ")
+    .replace(/[^a-zA-Z0-9]+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function inferElementalFluid(p) {
+  const text = normPartText([
+    p?.name, p?.type, p?.location, p?.effect, p?.note,
+    p?.explosion?.type, p?.element
+  ].filter(Boolean).join(" "));
+
+  if (/blaze|\bfeu\b/.test(text)) return "Fluide élémentaire — Blaze";
+  if (/chillwater|cryo|cryogen|\bgel\b|froid/.test(text)) return "Fluide élémentaire — Chillwater";
+  if (/metalburn|acide|corrosion/.test(text)) return "Fluide élémentaire — Metalburn";
+  if (/sparker|\bchoc\b|electrique|electrique/.test(text)) return "Fluide élémentaire — Sparker";
+  return "";
+}
+
+function inferMachineCoreLoot(machine) {
+  const category = normPartText(machine?.actor?.category);
+  if (/petite/.test(category)) return "Noyau de petite machine";
+  if (/moyenne/.test(category)) return "Noyau de machine moyenne";
+  if (/lourde|titan|prototype/.test(category)) return "Noyau de machine lourde";
+  return "Noyau de machine";
+}
+
+function inferPieceLoot(machine, p) {
+  const explicit = String(p?.loot ?? "").trim();
+  if (explicit) return explicit;
+
+  if (!p?.detachable || p?.recuperable === false || isChassisPiece(p)) return "";
+
+  const type = normPartText(p?.type);
+  const text = normPartText([
+    p?.name, p?.type, p?.location, p?.effect, p?.note,
+    p?.explosion?.type, p?.element
+  ].filter(Boolean).join(" "));
+
+  // Cœurs / noyaux.
+  if (type === "noyau" || /\bcoeur\b|\bnoyau\b/.test(text)) {
+    return inferMachineCoreLoot(machine);
+  }
+
+  // Réservoirs / bonbonnes / poches élémentaires.
+  if (type === "reservoir" || /reservoir|bonbonne|poche elementaire|sac elementaire/.test(text)) {
+    return inferElementalFluid(p) || "Fluide élémentaire";
+  }
+
+  // Éléments souples / stabilisateurs / câblages.
+  if (/stabilisateur|cablage|cable|fibre|filament|faisceau|tendon|souple/.test(text)) {
+    return "Fibres synthétiques";
+  }
+
+  // Batteries / réacteurs / générateurs.
+  if (type === "generateur" || type === "moteur" || /batterie|reacteur|generateur|accumulateur/.test(text)) {
+    return "Cellule d’énergie faible";
+  }
+
+  // Optiques / radars / capteurs visuels.
+  if (/oeil|optique|radar|lentille|capteur frontal|capteur de materiaux|capteur de charognard|tete capteur/.test(text)) {
+    return "Lentilles optiques";
+  }
+
+  // Électronique / modules / relais / balises / émetteurs.
+  if (/circuit|relais|electronique|module|balise|emetteur|recepteur|interface|signal|alerte/.test(text)) {
+    return "Circuit ancien abîmé";
+  }
+
+  // Un capteur générique restant est traité comme une optique simple.
+  if (type === "capteur") return "Lentilles optiques";
+
+  // Structures rigides / griffes / plaques / membres.
+  if (["structure","mobilite","blindage"].includes(type)
+      || /structure|griffe|plaque|blindage|membre|patte|aile|carapace|coque|armature|corne|lance/.test(text)) {
+    return "Plaques métalliques";
+  }
+
+  return "";
+}
+
 function pieceEntry(machineKey, machine, p) {
+  const recoverable = !!p.detachable && !isChassisPiece(p) && p.recuperable !== false;
+  const inferredLoot = recoverable ? inferPieceLoot(machine, p) : "";
   const props = {
     H0D_Composant_Type: p.type,
     H0D_Composant_Emplacement: p.location,
@@ -1018,8 +1115,8 @@ function pieceEntry(machineKey, machine, p) {
     H0D_Composant_Etat: "Intact",
     H0D_Composant_Destructible: true,
     H0D_Composant_Detachable: !!p.detachable,
-    H0D_Composant_Recuperable: !!p.detachable && !isChassisPiece(p) && p.recuperable !== false,
-    H0D_Composant_Loot: String(p.loot ?? ""),
+    H0D_Composant_Recuperable: recoverable,
+    H0D_Composant_Loot: inferredLoot,
     H0D_Composant_Valeur: Number(p.lootValue ?? 0),
     H0D_Composant_Marquee: false,
     H0D_Composant_Compte_PV: !!p.countPV,
@@ -1675,7 +1772,7 @@ async function openBuilder() {
   ].join("");
 
   const result = await foundry.applications.api.DialogV2.input({
-    window: {title:"H0D — Machine Builder v0.6.0"},
+    window: {title:`H0D — Machine Builder v${VERSION}`},
     content: `
       <div style="display:flex;flex-direction:column;gap:10px;">
         <p><strong>Menaces 1 à 3.</strong> Génère la bibliothèque ou assemble directement les machines avec leurs pièces et attaques.</p>
@@ -1751,5 +1848,5 @@ Hooks.once("ready", async () => {
     validate: key => machineWarnings(MACHINES[key])
   };
   await ensureLauncherMacro();
-  if (game.user.isGM) console.log(`${MODULE_ID} | v0.6.0 prêt`);
+  if (game.user.isGM) console.log(`${MODULE_ID} | v${VERSION} prêt`);
 });
