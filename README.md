@@ -187,3 +187,12 @@ Machine Builder
 Pour une pièce détachable/récupérable, `H0D_Composant_Loot` reçoit la ressource secondaire canonique lorsque celle-ci peut être déterminée. Les champs déjà présents du template Pièce v2.6 sont utilisés : aucun nouveau template n'est nécessaire.
 
 Le Builder n'invente pas l'élément d'un réservoir ambigu : la validation le signale afin qu'il puisse être précisé plus tard avec un `loot` explicite dans sa définition.
+
+
+## v0.9.0 — Nettoyage de l'audit sans réassemblage
+
+L'action **Synchroniser champs manquants (non destructif)** remet à niveau les machines déjà assemblées sans réinitialiser leur état de jeu.
+
+Elle met à jour la bibliothèque **H0D — Composants Machines**, retrouve les Items embarqués générés par `machineKey + kind + nom`, puis ajoute uniquement les propriétés absentes. Les PV actuels, états de pièces, marquages et compteurs déjà présents sont conservés.
+
+Les nouvelles générations écrivent aussi explicitement les champs optionnels qui créaient les warnings de l'audit 1.5.3 : explosion, effets de détachement/destruction et tirs.
