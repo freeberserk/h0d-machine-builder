@@ -1,3 +1,13 @@
+## 0.9.0 — Synchronisation sûre des composants existants
+- Les Pièces Machine générées renseignent tous les champs d'entrée canoniques du template Pièce v2.6 utilisés par l'audit : DD démontage/détachement, effet de détachement, explosion Type/Dégâts/Rayon/DD et récupération/loot.
+- Les Armes Machine générées renseignent aussi effet à destruction, effet à détachement, tirs max et tirs restants.
+- Ajout de l'action **Synchroniser champs manquants (non destructif)**.
+- Cette action met à jour la bibliothèque canonique puis complète les Items embarqués uniquement pour les clés absentes.
+- Une valeur déjà présente n'est jamais écrasée : PV actuels, états, marquage Focus, compteurs de recharge et modifications de jeu sont conservés.
+- Les Items sont reconnus par la signature stable `kind + nom` et le `machineKey`.
+- Aucun réassemblage complet de l'Actor n'est effectué par cette action.
+- Aucun changement des statistiques Menaces 1–3.
+
 ## 0.8.0 — Boucle pièces machine : création → PV → état → loot
 - Le Builder renseigne désormais automatiquement `H0D_Composant_Loot` pour les pièces détachables/récupérables.
 - Un `loot` explicite dans une définition de pièce reste prioritaire sur toute inférence.
