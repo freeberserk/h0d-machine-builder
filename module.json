@@ -1,8 +1,8 @@
 {
   "id": "h0d-machine-builder",
   "title": "H0D Machine Builder",
-  "description": "Générateur de machines H0D — Menaces 1 à 3, Intégrité v2, récupération/loot et synchronisation non destructive des champs manquants.",
-  "version": "0.9.0",
+  "description": "Générateur de machines H0D — Menaces 1 à 4, Intégrité v2, récupération/loot et synchronisation non destructive.",
+  "version": "0.10.0",
   "authors": [
     {
       "name": "JDR Zero Dawn"
