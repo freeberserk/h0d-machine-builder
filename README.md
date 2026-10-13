@@ -1,3 +1,13 @@
+## Menace 4 — v0.10.0
+
+Six profils intégrés depuis *Bestiaire_Machines_Menace_4_Fiches_Foundry(1).pdf* (pages 2 à 8) : Dent de Scie sauvage (74 PV), Charger (74 PV), Bellowback de Feu (86 PV), Bellowback de Glace (86 PV), Ravageur jeune / affaibli (82 PV), Glouton ELYS (78 PV). Tous ont 10 DEF corps, 12 DEF intacte, +6 ATQ, DD capacité 15, DD scan 13. Le DD de piratage est 19 pour Ravageur et Glouton, 18 pour les autres.
+
+La bibliothèque et l'assemblage proposent désormais « Toutes les Menace 4 » et chaque profil individuel. Les machines sont classées automatiquement dans Acteurs > H0D — Machines assemblées > Menace 4. La catégorie d'empreinte choisie est Moyenne (2×2) pour Dent de Scie, Charger, Ravageur et Glouton, Lourde (3×3) pour Bellowbacks ; les fiches sources ne fixaient pas de taille Foundry explicite, ce sont donc des choix d'intégration révisables.
+
+**Fidélité / limites :** pièces, PV, zones, bonus DEF, attaques, dégâts, portées, recharges et effets sont conservés. Les capacités qui nécessitent une logique conditionnelle (Berserk instable, conditions d'explosion, désactivation des attaques, état En feu/Ralenti, 1/scène, malus de mobilité) sont documentées mais **ne sont pas annoncées comme automatisées**. Le Health Manager gère séparément les PV et l'Intégrité ; contrôler l'interaction en BAC Foundry avant production. Les attaques de zone mentionnent leurs jets de sauvegarde dans leurs effets. Les notes du Glouton reprennent le contrecoup cumulatif et la destruction du module.
+
+---
+
 # H0D Machine Builder
 
 Module personnel pour **JDR Zero Dawn**, prévu pour **Foundry VTT v14** avec **Custom System Builder 6.x**.

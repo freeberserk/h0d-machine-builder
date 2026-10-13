@@ -1,5 +1,6 @@
+import { THREAT4_MACHINES } from "./h0d-threat4.js";
 const MODULE_ID = "h0d-machine-builder";
-const VERSION = "0.9.0";
+const VERSION = "0.10.0";
 const COMPONENT_PACK_LABEL = "H0D — Composants Machines";
 const WORLD_MACHINE_FOLDER = "H0D — Machines assemblées";
 
@@ -26,7 +27,7 @@ const TOKEN_SIZE_BY_CATEGORY = Object.freeze({
  * H0D Machine Builder v0.9.0
  * Foundry VTT v14 + Custom System Builder 6.x
  *
- * Menaces 1 à 3 complètes :
+ * Menaces 1 à 4 complètes :
  * - Menace 1 : Grazer de rite, Watcher, Strider, Burrower, Grazer sauvage
  * - Menace 2 : Redeye Watcher, Broadhead, Scrapper blessé, Scrapper standard/intact
  * - Menace 3 : Dent de Scie d'Aloy, Lancehorn, Longleg, Scrounger, Récolteur ELYS, Tisseur ELYS-9
@@ -733,6 +734,8 @@ const MACHINES = {
 
 };
 
+Object.assign(MACHINES, THREAT4_MACHINES);
+
 function notify(type, msg) { ui.notifications?.[type]?.(msg); }
 function clone(value) { return foundry.utils.deepClone(value); }
 function hasText(obj, key) { try { return JSON.stringify(obj ?? {}).includes(key); } catch { return false; } }
@@ -752,6 +755,7 @@ function selectionKeys(selection) {
   if (selection === "threat-1") return allMachineKeys(1);
   if (selection === "threat-2") return allMachineKeys(2);
   if (selection === "threat-3") return allMachineKeys(3);
+  if (selection === "threat-4") return allMachineKeys(4);
   return [selection];
 }
 
@@ -1853,21 +1857,24 @@ async function openBuilder() {
   const threat1Options = allMachineKeys(1).map(key => `<option value="${key}">${MACHINES[key].label}</option>`).join("");
   const threat2Options = allMachineKeys(2).map(key => `<option value="${key}">${MACHINES[key].label}</option>`).join("");
   const threat3Options = allMachineKeys(3).map(key => `<option value="${key}">${MACHINES[key].label}</option>`).join("");
+  const threat4Options = allMachineKeys(4).map(key => `<option value="${key}">${MACHINES[key].label}</option>`).join("");
   const machineOptions = [
     `<option value="all">Toutes les machines</option>`,
     `<option value="threat-1">Toutes les Menace 1</option>`,
     `<option value="threat-2">Toutes les Menace 2</option>`,
     `<option value="threat-3">Toutes les Menace 3</option>`,
+    `<option value="threat-4">Toutes les Menace 4</option>`,
     `<optgroup label="Menace 1">${threat1Options}</optgroup>`,
     `<optgroup label="Menace 2">${threat2Options}</optgroup>`,
-    `<optgroup label="Menace 3">${threat3Options}</optgroup>`
+    `<optgroup label="Menace 3">${threat3Options}</optgroup>`,
+    `<optgroup label="Menace 4">${threat4Options}</optgroup>`
   ].join("");
 
   const result = await foundry.applications.api.DialogV2.input({
     window: {title:`H0D — Machine Builder v${VERSION}`},
     content: `
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <p><strong>Menaces 1 à 3.</strong> Génère la bibliothèque ou assemble directement les machines avec leurs pièces et attaques.</p>
+        <p><strong>Menaces 1 à 4.</strong> Génère la bibliothèque ou assemble directement les machines avec leurs pièces et attaques.</p>
       <p><strong>Tokens :</strong> Petite 1×1 · Moyenne 2×2 · Lourde 3×3 · Titan 4×4 · Prototype = taille explicite.</p>
         ${(() => {
           const t = detectedTemplatesText();
@@ -1904,7 +1911,7 @@ async function openBuilder() {
         <hr>
         <p style="font-size:.9em;opacity:.8;">
           <strong>Bibliothèque :</strong> ${COMPONENT_PACK_LABEL}<br>
-          <strong>Machines assemblées :</strong> Acteurs → ${WORLD_MACHINE_FOLDER} → Menace 1 / Menace 2 / Menace 3<br>
+          <strong>Machines assemblées :</strong> Acteurs → ${WORLD_MACHINE_FOLDER} → Menace 1 / Menace 2 / Menace 3 / Menace 4<br>
           L'assemblage réutilise les Items du compendium : tes images personnalisées suivent donc la machine.
         </p>
       </div>`,
