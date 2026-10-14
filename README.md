@@ -1,4 +1,11 @@
-## Menace 4 — v0.10.0
+## Menace 4 — v0.10.1
+
+## v0.10.1 — Création de machines en série
+
+Fenêtre persistante après génération ou assemblage : Exécuter plusieurs fois, sélectionner une autre machine et fermer uniquement sur demande. Valeur prudente par défaut : conserver les entrées existantes. Les mises à jour et recréations exigent confirmation.
+
+**Mode d'emploi :** lancer la macro habituelle, choisir les données et cliquer sur **Générer / Exécuter**. La fenêtre demeure ouverte. Modifier la sélection et recommencer, puis cliquer sur **Fermer**. La création d'un Actor/item existant respecte le mode conservateur par défaut. Pour les actions modifiant des entrées existantes, une confirmation supplémentaire protège les personnalisations.
+
 
 Six profils intégrés depuis *Bestiaire_Machines_Menace_4_Fiches_Foundry(1).pdf* (pages 2 à 8) : Dent de Scie sauvage (74 PV), Charger (74 PV), Bellowback de Feu (86 PV), Bellowback de Glace (86 PV), Ravageur jeune / affaibli (82 PV), Glouton ELYS (78 PV). Tous ont 10 DEF corps, 12 DEF intacte, +6 ATQ, DD capacité 15, DD scan 13. Le DD de piratage est 19 pour Ravageur et Glouton, 18 pour les autres.
 
