@@ -1946,8 +1946,8 @@ async function openBuilder() {
         <div class="form-group">
           <label>Si l'entrée existe déjà</label>
           <select name="mode">
+            <option value="skip">Créer uniquement si absent / conserver si présent</option>
             <option value="update">Mettre à jour (conserve les images)</option>
-            <option value="skip">Ignorer</option>
             <option value="replace">Recréer</option>
           </select>
         </div>
@@ -1959,8 +1959,17 @@ async function openBuilder() {
         </p>
       </div>`,
   }, async result => {
+
+  if(result.action!=="repair-missing" && (result.mode==="update"||result.mode==="replace")){
+    const approved=await foundry.applications.api.DialogV2.confirm({
+      window:{title:"H0D — Confirmer la modification"},
+      content:"<p>Cette action peut remplacer des données et équipements générés, et effacer des personnalisations du monde.</p><p>Continuer ?</p>",
+      yes:{label:"Confirmer"},no:{label:"Annuler"}
+    });
+    if(!approved)return;
+  }
   try {
-    await runAction(result.action || "library", result.machine || "all", result.mode || "update");
+    await runAction(result.action || "library", result.machine || "all", result.mode || "skip");
   } catch (err) {
     console.error(`${MODULE_ID} |`, err);
     notify("error", `H0D Machine Builder : ${err?.message ?? err}`);
