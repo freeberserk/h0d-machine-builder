@@ -1,3 +1,8 @@
+## 0.10.1 — Création de machines en série
+
+- Fenêtre persistante après génération ou assemblage : Exécuter plusieurs fois, sélectionner une autre machine et fermer uniquement sur demande. Valeur prudente par défaut : conserver les entrées existantes. Les mises à jour et recréations exigent confirmation.
+- Aucun changement aux templates H0D ni aux règles de combat.
+
 ## 0.9.0 — Synchronisation sûre des composants existants
 - Les Pièces Machine générées renseignent tous les champs d'entrée canoniques du template Pièce v2.6 utilisés par l'audit : DD démontage/détachement, effet de détachement, explosion Type/Dégâts/Rayon/DD et récupération/loot.
 - Les Armes Machine générées renseignent aussi effet à destruction, effet à détachement, tirs max et tirs restants.
