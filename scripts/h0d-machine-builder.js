@@ -1,6 +1,6 @@
 import { THREAT4_MACHINES } from "./h0d-threat4.js";
 const MODULE_ID = "h0d-machine-builder";
-const VERSION = "0.10.0";
+const VERSION = "0.10.1";
 const COMPONENT_PACK_LABEL = "H0D — Composants Machines";
 const WORLD_MACHINE_FOLDER = "H0D — Machines assemblées";
 
