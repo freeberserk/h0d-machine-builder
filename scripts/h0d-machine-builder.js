@@ -1903,8 +1903,8 @@ async function openBuilder() {
         <div class="form-group">
           <label>Si l'entrée existe déjà</label>
           <select name="mode">
+            <option value="skip">Conserver si présent / créer si absent</option>
             <option value="update">Mettre à jour (conserve les images)</option>
-            <option value="skip">Ignorer</option>
             <option value="replace">Recréer</option>
           </select>
         </div>
