@@ -1,0 +1,14 @@
+import assert from "node:assert/strict";
+import {readFile} from "node:fs/promises";
+const source=await readFile(new URL("../scripts/h0d-machine-builder.js",import.meta.url),"utf8");
+assert.match(source,/DialogV2\.wait\(\{/,"dialog stays open until explicit close");
+assert.doesNotMatch(source,/DialogV2\.input\(\{/,"do not use one-shot input");
+assert.match(source,/data-h0d-run/,"manual execute button exists");
+assert.match(source,/data-h0d-status/,"feedback appears inside dialog");
+assert.match(source,/type="button" data-h0d-run/,"execute must never submit/close the form");
+assert.match(source,/buttons:\[\{action:"close"/,"there is an explicit close button");
+assert.match(source,/new FormData\(form\)/,"current selections must be read each run");
+assert.match(source,/button\.disabled=true/,"double-click protection");
+assert.match(source,/finally\{/,"button re-enables on success/failure");
+assert.match(source,/DialogV2\.confirm\(\{/,"destructive actions need confirmation");
+console.log("OK: h0d-machine-builder stays open for repeated generation with guarded destructive actions.");
