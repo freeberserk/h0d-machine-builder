@@ -1,6 +1,6 @@
 import { THREAT4_MACHINES } from "./h0d-threat4.js";
 const MODULE_ID = "h0d-machine-builder";
-const VERSION = "0.10.0";
+const VERSION = "0.10.1";
 const COMPONENT_PACK_LABEL = "H0D — Composants Machines";
 const WORLD_MACHINE_FOLDER = "H0D — Machines assemblées";
 
@@ -1870,10 +1870,10 @@ async function openBuilder() {
     `<optgroup label="Menace 4">${threat4Options}</optgroup>`
   ].join("");
 
-  const result = await foundry.applications.api.DialogV2.input({
+  await foundry.applications.api.DialogV2.wait({
     window: {title:`H0D — Machine Builder v${VERSION}`},
     content: `
-      <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="h0d-machine-batch" style="display:flex;flex-direction:column;gap:10px;">
         <p><strong>Menaces 1 à 4.</strong> Génère la bibliothèque ou assemble directement les machines avec leurs pièces et attaques.</p>
       <p><strong>Tokens :</strong> Petite 1×1 · Moyenne 2×2 · Lourde 3×3 · Titan 4×4 · Prototype = taille explicite.</p>
         ${(() => {
@@ -1903,8 +1903,8 @@ async function openBuilder() {
         <div class="form-group">
           <label>Si l'entrée existe déjà</label>
           <select name="mode">
+            <option value="skip">Conserver si présent / créer si absent</option>
             <option value="update">Mettre à jour (conserve les images)</option>
-            <option value="skip">Ignorer</option>
             <option value="replace">Recréer</option>
           </select>
         </div>
@@ -1914,17 +1914,51 @@ async function openBuilder() {
           <strong>Machines assemblées :</strong> Acteurs → ${WORLD_MACHINE_FOLDER} → Menace 1 / Menace 2 / Menace 3 / Menace 4<br>
           L'assemblage réutilise les Items du compendium : tes images personnalisées suivent donc la machine.
         </p>
+        <button type="button" data-h0d-run><i class="fa-solid fa-gears"></i> Exécuter</button>
+        <p data-h0d-status role="status" aria-live="polite" style="margin:0;min-height:1.2em;opacity:.8">La fenêtre restera ouverte.</p>
       </div>`,
-    ok:{label:"Exécuter",icon:"fa-solid fa-gears"}
+    buttons:[{action:"close",label:"Fermer",icon:"fa-solid fa-xmark"}],
+    rejectClose:false,
+    render:(_event,dialog)=>{
+      const root=dialog.element?.querySelector(".h0d-machine-batch");
+      const button=root?.querySelector("[data-h0d-run]");
+      const status=root?.querySelector("[data-h0d-status]");
+      if(!button||!status||button.dataset.ready==="1")return;
+      button.dataset.ready="1";
+      let busy=false;
+      button.addEventListener("click",async()=>{
+        if(busy)return;
+        const form=dialog.element?.querySelector("form");
+        if(!form)return;
+        const data=Object.fromEntries(new FormData(form).entries());
+        const action=String(data.action||"library"),
+          machine=String(data.machine||"all"),mode=String(data.mode||"skip");
+        busy=true;button.disabled=true;button.textContent="Génération en cours…";
+        status.textContent="Opération en cours…";
+        try{
+          if(mode==="replace"||(mode==="update"&&action!=="repair-missing")){
+            const confirmed=await foundry.applications.api.DialogV2.confirm({
+              window:{title:"H0D Machines — Confirmation"},
+              content:"<p>Cette action peut <strong>modifier ou recréer</strong> des machines et leurs composants déjà générés.</p>"+
+                "<p>Conserve une sauvegarde de ton BAC avant de continuer.</p>",
+              yes:{label:"Confirmer",icon:"fa-solid fa-triangle-exclamation"},
+              no:{label:"Annuler"}
+            });
+            if(!confirmed){status.textContent="Opération annulée.";return;}
+          }
+          await runAction(action,machine,mode);
+          status.textContent="Opération terminée. Sélectionne la prochaine machine.";
+        }catch(err){
+          console.error(MODULE_ID+" | génération persistante",err);
+          status.textContent="Erreur : "+(err?.message??err);
+          notify("error","H0D Machine Builder : "+(err?.message??err));
+        }finally{
+          busy=false;button.disabled=false;
+          button.innerHTML='<i class="fa-solid fa-gears"></i> Exécuter';
+        }
+      });
+    }
   });
-
-  if (!result) return;
-  try {
-    await runAction(result.action || "library", result.machine || "all", result.mode || "update");
-  } catch (err) {
-    console.error(`${MODULE_ID} |`, err);
-    notify("error", `H0D Machine Builder : ${err?.message ?? err}`);
-  }
 }
 
 async function ensureLauncherMacro() {
