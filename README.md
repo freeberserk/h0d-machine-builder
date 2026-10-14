@@ -1,3 +1,11 @@
+## 0.10.1 — Génération en série sans fermeture de fenêtre
+
+- La fenêtre reste ouverte après une génération ; conserve le profil, le mode et les champs saisis pour une nouvelle opération.
+- Bouton **Exécuter** dans le formulaire et bouton **Fermer** explicite ; protection contre les doubles clics et l'exécution simultanée.
+- Affichage du résultat/erreur dans la fenêtre sans la fermer.
+- Les actions **Mettre à jour** et **Recréer** restent disponibles sur confirmation ; création sans écrasement par défaut.
+- Données et règles de génération inchangées. La fermeture du dialogue n'annule pas un document déjà créé.
+
 ## Menace 4 — v0.10.0
 
 Six profils intégrés depuis *Bestiaire_Machines_Menace_4_Fiches_Foundry(1).pdf* (pages 2 à 8) : Dent de Scie sauvage (74 PV), Charger (74 PV), Bellowback de Feu (86 PV), Bellowback de Glace (86 PV), Ravageur jeune / affaibli (82 PV), Glouton ELYS (78 PV). Tous ont 10 DEF corps, 12 DEF intacte, +6 ATQ, DD capacité 15, DD scan 13. Le DD de piratage est 19 pour Ravageur et Glouton, 18 pour les autres.
