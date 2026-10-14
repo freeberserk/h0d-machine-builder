@@ -1,3 +1,11 @@
+## 0.10.1 — Génération en série sans fermeture de fenêtre
+
+- La fenêtre reste ouverte après une génération ; conserve le profil, le mode et les champs saisis pour une nouvelle opération.
+- Bouton **Exécuter** dans le formulaire et bouton **Fermer** explicite ; protection contre les doubles clics et l'exécution simultanée.
+- Affichage du résultat/erreur dans la fenêtre sans la fermer.
+- Les actions **Mettre à jour** et **Recréer** restent disponibles sur confirmation ; création sans écrasement par défaut.
+- Données et règles de génération inchangées. La fermeture du dialogue n'annule pas un document déjà créé.
+
 ## 0.9.0 — Synchronisation sûre des composants existants
 - Les Pièces Machine générées renseignent tous les champs d'entrée canoniques du template Pièce v2.6 utilisés par l'audit : DD démontage/détachement, effet de détachement, explosion Type/Dégâts/Rayon/DD et récupération/loot.
 - Les Armes Machine générées renseignent aussi effet à destruction, effet à détachement, tirs max et tirs restants.
