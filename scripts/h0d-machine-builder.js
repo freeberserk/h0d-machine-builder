@@ -1,6 +1,6 @@
 import { THREAT4_MACHINES } from "./h0d-threat4.js";
 const MODULE_ID = "h0d-machine-builder";
-const VERSION = "0.10.1";
+const VERSION = "0.10.2";
 const COMPONENT_PACK_LABEL = "H0D — Composants Machines";
 const WORLD_MACHINE_FOLDER = "H0D — Machines assemblées";
 
@@ -736,6 +736,79 @@ const MACHINES = {
 
 Object.assign(MACHINES, THREAT4_MACHINES);
 
+const MACHINE_PERCEPTION_PROFILES = Object.freeze({
+  "grazer-rite":       {total:2, range:30},
+  "watcher":           {total:6, range:60},
+  "strider-standard":  {total:4, range:30},
+  "burrower-simple":   {total:4, range:30},
+  "grazer-sauvage":    {total:2, range:30},
+  "redeye-watcher":    {total:7, range:60},
+  "broadhead":         {total:4, range:30},
+  "scrapper-blesse":   {total:4, range:30},
+  "scrapper-standard": {total:5, range:30},
+  "sawtooth-aloy":     {total:5, range:30},
+  "lancehorn":         {total:3, range:30},
+  "longleg":           {total:5, range:45},
+  "scrounger":         {total:4, range:30},
+  "recolteur-elys":    {total:5, range:45},
+  "tisseur-elys9":     {total:6, range:60},
+  "sawtooth-wild":     {total:5, range:30},
+  "charger-wild":      {total:3, range:30},
+  "bellowback-fire":   {total:3, range:30},
+  "bellowback-ice":    {total:3, range:30},
+  "ravager-young":     {total:5, range:45},
+  "glouton-elys":      {total:6, range:60}
+});
+
+const SPECIAL_SENSOR_PROFILES = Object.freeze({
+  "scrapper-blesse::Radar dorsal endommagé": {
+    specialized:true, mode:"Radar", target:"Machines au sol / carcasses", range:45, generalBonus:0
+  },
+  "scrapper-standard::Radar dorsal": {
+    specialized:true, mode:"Radar", target:"Machines au sol / carcasses", range:60, generalBonus:0
+  }
+});
+
+function machineKeyFor(machine) {
+  return Object.entries(MACHINES).find(([,value]) => value === machine)?.[0] ?? "";
+}
+
+function sensorProfile(machineKey, piece) {
+  const explicit = SPECIAL_SENSOR_PROFILES[`${machineKey}::${piece?.name ?? ""}`];
+  if (explicit) return explicit;
+
+  // Un malus historique « Perception -4 » devient un bonus de capteur actif +4.
+  // Les radars spécialisés (Scrapper) sont exclus via SPECIAL_SENSOR_PROFILES.
+  let generalBonus = Number(piece?.perceptionBonus ?? 0);
+  if (!generalBonus && Number(piece?.malusPerception) < 0) {
+    generalBonus = Math.abs(Number(piece.malusPerception));
+  }
+  if (!generalBonus && /perception\s+r[ée]duite/i.test(String(piece?.effect ?? ""))) {
+    generalBonus = 4;
+  }
+
+  return {
+    specialized:false,
+    mode:piece?.type === "Capteur" ? "Visuel" : "Autre",
+    target:"",
+    range:0,
+    generalBonus
+  };
+}
+
+function machinePerceptionProfile(machineKey, machine) {
+  const desired = MACHINE_PERCEPTION_PROFILES[machineKey]
+    ?? {total:Math.max(2, Number(machine?.actor?.threat ?? 1) + 1), range:30};
+  const sensorBonus = (machine?.pieces ?? [])
+    .reduce((sum,piece) => sum + Number(sensorProfile(machineKey,piece).generalBonus || 0), 0);
+
+  return {
+    total:Number(desired.total),
+    base:Number(desired.total) - sensorBonus,
+    range:Number(desired.range)
+  };
+}
+
 function notify(type, msg) { ui.notifications?.[type]?.(msg); }
 function clone(value) { return foundry.utils.deepClone(value); }
 function hasText(obj, key) { try { return JSON.stringify(obj ?? {}).includes(key); } catch { return false; } }
@@ -1109,6 +1182,7 @@ function inferPieceLoot(machine, p) {
 }
 
 function pieceEntry(machineKey, machine, p) {
+  const perceptionSensor = sensorProfile(machineKey, p);
   const recoverable = !!p.detachable && !isChassisPiece(p) && p.recuperable !== false;
   const inferredLoot = recoverable ? inferPieceLoot(machine, p) : "";
 
@@ -1150,6 +1224,11 @@ function pieceEntry(machineKey, machine, p) {
     H0D_Composant_Explosion_Rayon: explosion.radius,
     H0D_Composant_Explosion_DD: explosion.dc,
     H0D_Composant_Notes: p.note ?? "",
+    H0D_Composant_Capteur_Specialise: !!perceptionSensor.specialized,
+    H0D_Composant_Capteur_Mode: perceptionSensor.mode || "Visuel",
+    H0D_Composant_Capteur_Cible: perceptionSensor.target || "",
+    H0D_Composant_Capteur_Portee: Number(perceptionSensor.range || 0),
+    H0D_Composant_Capteur_Bonus_Perception: Number(perceptionSensor.generalBonus || 0),
     H0D_Composant_Malus_Perception_Destruction: Number(p.malusPerception || 0),
     H0D_Composant_Malus_Vitesse_Destruction: Number(p.malusSpeed || 0)
   };
@@ -1381,8 +1460,75 @@ async function repairEmbeddedMissingSelection(machineSelection) {
   return total;
 }
 
+
+const PERCEPTION_ACTOR_FIELDS = Object.freeze([
+  "H0D_Machine_Perception_Base",
+  "H0D_Machine_Perception_Portee_Base"
+]);
+const PERCEPTION_COMPONENT_FIELDS = Object.freeze([
+  "H0D_Composant_Capteur_Specialise",
+  "H0D_Composant_Capteur_Mode",
+  "H0D_Composant_Capteur_Cible",
+  "H0D_Composant_Capteur_Portee",
+  "H0D_Composant_Capteur_Bonus_Perception"
+]);
+
+async function syncPerceptionOne(machineKey) {
+  const machine = MACHINES[machineKey];
+  if (!machine) throw new Error(`Machine inconnue : ${machineKey}`);
+
+  const aliases = machineKeyAliases(machineKey);
+  const actor = Array.from(game.actors ?? []).find(a =>
+    aliases.includes(a.getFlag(MODULE_ID,"machineKey")) &&
+    a.getFlag(MODULE_ID,"blueprint") === true
+  );
+
+  // La bibliothèque est canonique : on peut la remettre entièrement à jour.
+  await generateLibraryOne(machineKey, "update");
+
+  if (!actor) return {actors:0, items:0, props:0};
+
+  const expectedActor = actorProps(machine);
+  const actorUpdate = {};
+  for (const key of PERCEPTION_ACTOR_FIELDS) {
+    actorUpdate[`system.props.${key}`] = clone(expectedActor[key]);
+  }
+  await actor.update(actorUpdate);
+
+  const canonical = canonicalEntryMap(machineKey);
+  let items=0, props=Object.keys(actorUpdate).length;
+  for (const item of actor.items ?? []) {
+    if (item.getFlag(MODULE_ID,"generated") !== true) continue;
+    if (!aliases.includes(item.getFlag(MODULE_ID,"machineKey"))) continue;
+    if (item.getFlag(MODULE_ID,"kind") !== "piece") continue;
+    const entry = canonical.get(`piece::${item.name}`);
+    if (!entry) continue;
+
+    const update = {};
+    for (const key of PERCEPTION_COMPONENT_FIELDS) {
+      update[`system.props.${key}`] = clone(entry.props[key]);
+    }
+    await item.update(update);
+    items++;
+    props += Object.keys(update).length;
+  }
+
+  return {actors:1,items,props};
+}
+
+async function syncPerceptionSelection(machineSelection="all") {
+  const total={actors:0,items:0,props:0};
+  for (const key of selectionKeys(machineSelection)) {
+    const stats=await syncPerceptionOne(key);
+    for (const field of Object.keys(total)) total[field]+=Number(stats[field]||0);
+  }
+  return total;
+}
+
 function actorProps(machine) {
   const a = machine.actor;
+  const machineKey = machineKeyFor(machine);
+  const perception = machinePerceptionProfile(machineKey, machine);
   const warnings = machineWarnings(machine);
   const warningText = warnings.length ? `\n\n⚠ VALIDATION SOURCE : ${warnings.join(" ")}` : "";
   return {
@@ -1405,7 +1551,9 @@ function actorProps(machine) {
     H0D_Machine_DD_Capacites: a.abilityDC,
     H0D_Machine_Mod_Attaque_Temp: 0,
     H0D_Machine_Mod_DEF_Temp: 0,
+    H0D_Machine_Perception_Base: perception.base,
     H0D_Machine_Mod_Perception_Temp: 0,
+    H0D_Machine_Perception_Portee_Base: perception.range,
     H0D_Machine_Mod_Vitesse_Temp: 0,
     H0D_Machine_Etat_Marquee: false,
     H0D_Machine_Etat_Ralentie: false,
@@ -1834,6 +1982,15 @@ async function runAction(action, machineSelection, mode) {
     return;
   }
 
+  if (action === "sync-perception") {
+    const total = await syncPerceptionSelection(machineSelection);
+    notify(
+      "info",
+      `H0D : PER/DET synchronisées — ${total.actors} machine(s), ${total.items} composant(s), ${total.props} champ(s) ciblé(s).`
+    );
+    return;
+  }
+
   if (action === "repair-missing") {
     const total = await repairEmbeddedMissingSelection(machineSelection);
     notify(
@@ -1893,6 +2050,7 @@ async function openBuilder() {
           <select name="action">
             <option value="library">Générer / mettre à jour la bibliothèque</option>
             <option value="repair-missing">Synchroniser champs manquants (non destructif)</option>
+            <option value="sync-perception">Synchroniser PER / DET / capteurs (ciblé)</option>
             <option value="assemble">Assembler machine complète</option>
           </select>
         </div>
@@ -1936,7 +2094,7 @@ async function openBuilder() {
         busy=true;button.disabled=true;button.textContent="Génération en cours…";
         status.textContent="Opération en cours…";
         try{
-          if(mode==="replace"||(mode==="update"&&action!=="repair-missing")){
+          if(mode==="replace"||(mode==="update"&&!["repair-missing","sync-perception"].includes(action))){
             const confirmed=await foundry.applications.api.DialogV2.confirm({
               window:{title:"H0D Machines — Confirmation"},
               content:"<p>Cette action peut <strong>modifier ou recréer</strong> des machines et leurs composants déjà générés.</p>"+
@@ -1981,7 +2139,8 @@ Hooks.once("ready", async () => {
     assemble: assembleMachineOne,
     machines: MACHINES,
     validate: key => machineWarnings(MACHINES[key]),
-    repairMissing: repairEmbeddedMissingOne
+    repairMissing: repairEmbeddedMissingOne,
+    syncPerception: syncPerceptionSelection
   };
   await ensureLauncherMacro();
   if (game.user.isGM) console.log(`${MODULE_ID} | v${VERSION} prêt`);
