@@ -1,3 +1,13 @@
+## 0.10.2 — Perception, DET et capteurs spécialisés
+
+- Les profils Machine renseignent désormais `H0D_Machine_Perception_Base` et `H0D_Machine_Perception_Portee_Base`.
+- Les capteurs visuels historiques qui appliquaient « Perception -4 » deviennent des bonus de PER actifs retirés automatiquement si la pièce est détruite/détachée.
+- Les radars des Scrappers sont désormais spécialisés dans la détection des **machines au sol / carcasses** et ne donnent plus de bonus universel de Perception.
+- Scrapper blessé : radar récupération 45 m ; Scrapper standard : radar récupération 60 m.
+- Ajout de l'action **Synchroniser PER / DET / capteurs (ciblé)** : elle ne touche qu'aux champs de perception/capteurs des Actors et pièces embarquées existants.
+- La bibliothèque de composants est remise à jour avant la synchronisation ciblée.
+- Aucun PV actuel, état, marquage, recharge ou autre donnée de séance n'est modifié.
+
 ## 0.10.1 — Création de machines en série
 
 - Fenêtre persistante après génération ou assemblage : Exécuter plusieurs fois, sélectionner une autre machine et fermer uniquement sur demande. Valeur prudente par défaut : conserver les entrées existantes. Les mises à jour et recréations exigent confirmation.
