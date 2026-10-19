@@ -14,6 +14,7 @@ jobs:
         run: |
           node --check scripts/h0d-machine-builder.js
           node tests/batch-dialog.mjs
+          node tests/perception-sync.mjs
           python3 -m json.tool module.json > /dev/null
       - name: Package and publish release
         env:
