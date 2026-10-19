@@ -27,7 +27,7 @@
         "id": "h0d-template-manager",
         "type": "module",
         "compatibility": {
-          "minimum": "1.3.0"
+          "minimum": "1.7.16"
         }
       }
     ]
