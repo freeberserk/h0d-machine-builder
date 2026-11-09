@@ -1,0 +1,31 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const js=readFileSync(new URL("../scripts/h0d-machine-builder.js",import.meta.url),"utf8");
+const start=js.indexOf("function recoverySpec("),end=js.indexOf("function pieceEntry(",start);
+assert(start>=0&&end>start);
+const normPartText=s=>String(s??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[’']/g," ").replace(/[^a-zA-Z0-9]+/g," ").trim().toLowerCase();
+const spec=new Function("normPartText",js.slice(start,end)+"return recoverySpec;")(normPartText);
+const ravager={label:"Ravageur sauvage"},stalker={label:"Stalker sauvage"},scrapper={label:"Scrapper standard"};
+const g=spec(ravager,{name:"Griffe gauche",type:"Structure"},"Plaques métalliques");
+assert.deepEqual({q:g.yield,rare:g.rarePercent,key:g.rareKey,charge:g.charge},{q:1,rare:10,key:"griffe-de-machine-intacte",charge:1});
+const h=spec(ravager,{name:"Corne droite",type:"Structure"},"Plaques métalliques");
+assert.equal(h.yield,1);assert.equal(h.rarePercent,10);assert.equal(h.rareKey,"","Pas de trophée rare de corne inventé");
+for(const n of ["Plaques dorsales","Blindage dorsal"]){
+ const p=spec(ravager,{name:n,type:"Blindage"},"Plaques métalliques");
+ assert.equal(p.yield,4);assert.equal(p.rarePercent,0);assert.equal(p.rareKey,"");
+}
+const small=spec(ravager,{name:"Plaque latérale",type:"Blindage"},"Plaques métalliques");
+assert.equal(small.yield,2);
+const massive=spec(ravager,{name:"Blindage massif",type:"Blindage"},"Plaques métalliques");
+assert.equal(massive.yield,6);assert.equal(massive.rarePercent,0);
+const optical=spec(scrapper,{name:"Radar dorsal",type:"Capteur"},"Lentilles optiques");
+assert.equal(optical.rarePercent,10);assert.equal(optical.rareKey,"radar-de-scrapper-intact");
+const module=spec(ravager,{name:"Module électronique",type:"Electronique"},"Circuit ancien abîmé");
+assert.equal(module.rarePercent,5);assert.equal(module.yield,1);assert.equal(module.rareKey,"","Pas de pièce rare sans référence Catalogue");
+const furtif=spec(stalker,{name:"Générateur de camouflage",type:"Generateur"},"Cellule d’énergie faible");
+assert.equal(furtif.rarePercent,5);assert.equal(furtif.rareKey,"generateur-furtif-de-stalker");
+assert.equal(spec(ravager,{name:"Blindage dorsal",type:"Blindage",salvageYield:3,rareChance:90,rareKey:"x"},"Plaques métalliques").rarePercent,0);
+assert.equal(spec(ravager,{name:"Griffe gauche",type:"Structure",salvageYield:2},"Plaques métalliques").yield,2);
+assert.equal(spec(ravager,{name:"Châssis",type:"Structure"},"").yield,0);
+for(const field of ["H0D_Composant_Rendement","H0D_Composant_Charge_Entiere","H0D_Composant_Rare_Pourcent","H0D_Composant_Rare_Catalogue_Key"])assert(js.includes(field));
+console.log("Machine Builder — rendement par gabarit, plaques sans rareté et pièces rares documentées : OK");

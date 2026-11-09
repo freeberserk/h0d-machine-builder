@@ -1,3 +1,11 @@
+## 0.12.0 — Récupération H0D par composant
+
+- Nouveau profil de récupération (rendement, charge entière, rareté, clé Catalogue exacte) à la génération des pièces.
+- Griffes/cornes 10 %, capteurs 10 %, électronique 5 %, plaques 0 % rare.
+- Blindages volumineux fournissent plusieurs PM ; les caractéristiques et PV des machines restent inchangés.
+- Aucun objet rare inventé en l'absence de référence ; aucun inventaire Foundry modifié automatiquement.
+- Test dédié aux rendements et à l'interdiction de la rareté des plaques.
+
 ## 0.11.0 — Nouveaux profils Menace 5 et meute Clawstrider
 
 - Intègre les 4 fiches chiffrées validées (Ravageur sauvage, Stalker sauvage, Clawstrider sauvage M2, Fanghorn sauvage M5) et la fiche Moissonneur ELYS-9 M5, explicitement signalée V1 numérique à confirmer.

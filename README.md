@@ -1,3 +1,18 @@
+## v0.12.0 — Récupération par composant
+
+Le **H0D Machine Builder** prépare les quatre champs de récupération dans les nouvelles pièces générées :
+`H0D_Composant_Rendement`, `H0D_Composant_Charge_Entiere`, `H0D_Composant_Rare_Pourcent` et `H0D_Composant_Rare_Catalogue_Key`.
+
+- **Griffes / cornes** : 1 plaque ; chance rare 10 %, uniquement si une référence rare explicite existe.
+- **Capteurs** : 1 lentille ; chance rare 10 % (œil optique intact, radar Scrapper documenté).
+- **Modules électroniques** : 1–3 circuits ; chance rare 5 %, uniquement si un objet rare documenté est disponible (ex. générateur furtif de Stalker).
+- **Plaques / blindages** : rendement 2 / 4 / 6 selon le gabarit décrit dans la fiche ; 0 % rare, même si une autre valeur était fournie.
+- **Réservoirs et faisceaux** : rendement 1 à 3 selon leur taille ; pas de taux rare inventé.
+- Les noyaux, trophées nommés et pièces spéciales déjà prévus ne disparaissent pas. Une corne sans objet rare canonique conserve 10 % comme paramètre éditable, mais aucun objet n'est tiré sans référence valide.
+- Les champs explicites `salvageYield`, `rareChance`, `rareKey`, `wholeCharge` de la définition de machine priment sur l'inférence (sauf l'interdiction absolue d'une plaque rare).
+
+Le rendement dépend du **type et du gabarit de la pièce**, pas de ses PV de combat. Le demi-rendement d'une pièce endommagée et la vérification du Catalogue sont appliqués par H0D Loot. Aucune fiche de machine déjà créée dans les mondes Foundry n'est modifiée automatiquement ; seuls les nouveaux imports et les mises à jour manuelles utilisent les nouveaux champs.
+
 ## v0.11.0 — Bestiaire machines Menace 5 (dossier du 9 novembre 2026)
 
 Les fiches du PDF *Bestiaire_Machines_Menace_5_Fiches_Foundry(1).pdf* sont disponibles dans `scripts/h0d-threat5.js` et dans le menu du Machine Builder, sans modifier les Menaces 1–4 existantes.

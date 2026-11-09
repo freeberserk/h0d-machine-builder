@@ -2,7 +2,7 @@ import {ensureManagedLauncherMacro} from "./h0d-launcher-macro.js";
 import { THREAT4_MACHINES } from "./h0d-threat4.js";
 import { THREAT5_MACHINES } from "./h0d-threat5.js";
 const MODULE_ID = "h0d-machine-builder";
-const VERSION = "0.11.0";
+const VERSION = "0.12.0";
 const COMPONENT_PACK_LABEL = "H0D — Composants Machines";
 const WORLD_MACHINE_FOLDER = "H0D — Machines assemblées";
 
@@ -1190,10 +1190,65 @@ function inferPieceLoot(machine, p) {
   return "";
 }
 
+
+/**
+ * Récupération H0D 2026-11-09 : le rendement dépend de la NATURE et du GABARIT
+ * de la pièce, jamais automatiquement des PV de combat. Les champs explicites
+ * d'une fiche de machine restent prioritaires.
+ *
+ * Le Catalogue tranche les objets rares : sans clé rare reconnue, aucun objet
+ * aléatoire de remplacement ne doit être inventé.
+ */
+function recoverySpec(machine, piece, lootName) {
+  if (!lootName) return {yield:0,charge:0,rarePercent:0,rareKey:""};
+  const n=normPartText(piece?.name), type=normPartText(piece?.type);
+  const isPlate=type==="blindage"||/plaque|blindage|carapace|coque/.test(n);
+  const isClaw=/griffe|corne|croc|mandibule/.test(n);
+  const isOptic=type==="capteur"||/oeil|optique|lentille|radar|capteur/.test(n);
+  const isElectronics=type==="electronique"||/circuit|relais|interface|balise|module electronique|emetteur|generateur.*(?:camouflage|furtif)/.test(n);
+  const isReservoir=type==="reservoir"||/reservoir|bonbonne|poche elementaire/.test(n);
+  const isSoft=/fibre|cable|tendon|faisceau|stabilisateur/.test(n);
+  let yieldCount=1;
+  if (isPlate) yieldCount=/massif|titan|colossal|tres lourd/.test(n)?6:
+    /grand|dorsal|principal|renforce|lourd/.test(n)?4:
+    /lateral|flanc|segment|moyen/.test(n)?2:2;
+  else if(isElectronics)yieldCount=/central|principal|grand/.test(n)?3:/double|gros/.test(n)?2:1;
+  else if(isReservoir||isSoft)yieldCount=/grand|lourd|massif/.test(n)?3:/moyen|dorsal|double/.test(n)?2:1;
+
+  let rarePercent=0,rareKey="";
+  if (!isPlate && isClaw) {
+    rarePercent=10;
+    // Seule la griffe possède déjà une référence rare cataloguée.
+    if(/griffe/.test(n))rareKey="griffe-de-machine-intacte";
+  } else if (!isPlate && isOptic) {
+    rarePercent=10;
+    rareKey=/radar/.test(n)&&/scrapper/.test(normPartText(machine?.label))
+      ?"radar-de-scrapper-intact":"oeil-optique-intact";
+  } else if (!isPlate && isElectronics) {
+    rarePercent=5;
+    if(/furtif|camouflage/.test(n)&&/stalker/.test(normPartText(machine?.label)))
+      rareKey="generateur-furtif-de-stalker";
+  }
+
+  const explicitYield=Number(piece?.salvageYield);
+  if(piece?.salvageYield!==undefined && Number.isSafeInteger(explicitYield)&&explicitYield>=0)yieldCount=explicitYield;
+  if(piece?.rareChance!==undefined && Number.isFinite(Number(piece.rareChance)))
+    rarePercent=Math.max(0,Math.min(100,Number(piece.rareChance)));
+  if(typeof piece?.rareKey==="string")rareKey=piece.rareKey;
+  // Les plaques ne deviennent JAMAIS rares aléatoirement.
+  if(isPlate){rarePercent=0;rareKey="";}
+  const baseCharge=isPlate?yieldCount:isClaw?1:isOptic?1:isElectronics?2:isReservoir?2:1;
+  const explicitCharge=Number(piece?.wholeCharge);
+  const charge=piece?.wholeCharge!==undefined && Number.isFinite(explicitCharge)&&explicitCharge>=0
+    ?explicitCharge:baseCharge;
+  return {yield:yieldCount,charge,rarePercent,rareKey};
+}
+
 function pieceEntry(machineKey, machine, p) {
   const perceptionSensor = sensorProfile(machineKey, p);
   const recoverable = !!p.detachable && !isChassisPiece(p) && p.recuperable !== false;
   const inferredLoot = recoverable ? inferPieceLoot(machine, p) : "";
+  const recovery = recoverable ? recoverySpec(machine,p,inferredLoot) : {yield:0,charge:0,rarePercent:0,rareKey:""};
 
   const explosion = p.explosion
     ? {
@@ -1216,6 +1271,10 @@ function pieceEntry(machineKey, machine, p) {
     H0D_Composant_Detachable: !!p.detachable,
     H0D_Composant_Recuperable: recoverable,
     H0D_Composant_Loot: inferredLoot,
+    H0D_Composant_Rendement: recovery.yield,
+    H0D_Composant_Charge_Entiere: recovery.charge,
+    H0D_Composant_Rare_Pourcent: recovery.rarePercent,
+    H0D_Composant_Rare_Catalogue_Key: recovery.rareKey,
     H0D_Composant_Valeur: Number(p.lootValue ?? 0),
     H0D_Composant_Marquee: false,
     H0D_Composant_Compte_PV: !!p.countPV,
