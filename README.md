@@ -1,3 +1,26 @@
+## v0.11.0 — Bestiaire machines Menace 5 (dossier du 9 novembre 2026)
+
+Les fiches du PDF *Bestiaire_Machines_Menace_5_Fiches_Foundry(1).pdf* sont disponibles dans `scripts/h0d-threat5.js` et dans le menu du Machine Builder, sans modifier les Menaces 1–4 existantes.
+
+| Profil | Menace individuelle | PV corps / pièces = total | DEF intacte | ATQ | Statut source |
+| --- | ---: | --- | ---: | ---: | --- |
+| Ravageur sauvage | 5 | 40 + 55 = **95** | 13 | +7 | Validé |
+| Stalker sauvage | 5 | 38 + 49 = **87** | 11 | +7 | Validé |
+| Clawstrider sauvage | **2** | 10 + 18 = **28** | 11 | +4 | Validé (empreinte 2×2 proposée, non confirmée) |
+| Fanghorn sauvage | 5 | 42 + 62 = **104** | 13 | +7 | Validé |
+| Moissonneur ELYS-9 | 5 | 44 + 66 = **110** | 12 | +7 | **V1 numérique non validée** |
+
+- La sélection **« Toutes les Menace 5 validées »** prépare les trois profils individuels confirmés, sans inclure le Moissonneur provisoire ni le Clawstrider Menace 2.
+- Les sélections groupées **« Toutes les machines »** excluent la V1 provisoire. Le Moissonneur peut être choisi individuellement après une confirmation explicite de ses statistiques non validées.
+- Le Clawstrider reste un **Actor individuel Menace 2**. Trois Clawstriders coordonnés constituent une **rencontre Menace 5** ; aucune fiche de meute ni PV collectifs ne sont créés. Sa taille **Moyenne 2×2** est uniquement le paramétrage technique proposé par le PDF.
+- Les capteurs donnent **PER +6 / 45 m** (Ravageur, Stalker, Fanghorn, Moissonneur) et **+5 / 30 m** (Clawstrider), avec bonus de capteur actif +4 ou +3.
+- Les deux mines du Stalker sont des **utilisations par scène**, pas une recharge de deux rounds. Les explosions élémentaires, la furtivité, les réactions, les recharges, la capture, le transport et les tactiques sont documentés dans les Items, mais leurs effets conditionnels restent à arbitrer par le MJ.
+- Le Fanghorn M5 est **distinct** du Lancehorn M3 existant ; l'ancienne entrée composite n'est pas reprise.
+- Le moteur d'**Intégrité v2**, ses protections du corps et ses règles de report restent inchangés. Les PV des attaques ne s'ajoutent pas aux PV globaux.
+- La source recommande une illustration **« Moissonneur ELYSIUM.png »** qui n'est pas embarquée par ce dépôt : choisir l'illustration manuellement dans Foundry si elle est disponible.
+- La synchronisation des machines existantes reste conservatrice ; aucune mise à jour destructive n'est lancée automatiquement. Tester l'assemblage et les états en BAC Foundry.
+
+---
 ## 0.10.3 — Macros personnalisées protégées
 
 Au chargement, le module identifie son lanceur grâce au flag de propriété `flags.h0d-machine-builder.launcher`. Une ancienne macro portant exactement le nom ET la commande officiels est marquée sans changement. Une macro personnalisée portant le même nom n'est jamais réécrite : le module crée au besoin une macro séparée « (module officiel) ». Une modification manuelle d'une macro déjà marquée est conservée au prochain démarrage ; le module n'en modifie plus la commande. Aucun nom seul ne donne le droit d'écraser une macro.

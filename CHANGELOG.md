@@ -1,3 +1,13 @@
+## 0.11.0 — Nouveaux profils Menace 5 et meute Clawstrider
+
+- Intègre les 4 fiches chiffrées validées (Ravageur sauvage, Stalker sauvage, Clawstrider sauvage M2, Fanghorn sauvage M5) et la fiche Moissonneur ELYS-9 M5, explicitement signalée V1 numérique à confirmer.
+- Fournit 49 composants destructibles et 31 actions/capacités selon le dossier PDF, avec PV, DEF, DD, vitesses, capteurs, portées et recharges documentés.
+- Contrôle PV corps + composants et DEF de base + protections ; capteurs +4 ou +3, PER cibles des 5 profils.
+- Exclut Moissonneur des opérations de masse ; son import individuel demande confirmation et marque les Actors/Items `sourceValidation:v1-a-confirmer`.
+- Garde le Clawstrider individuellement Menace 2, 3 individus coordonnés = rencontre Menace 5 (aucun Actor composite).
+- Ne modifie ni les anciens profils ni les mécaniques d'Intégrité v2 ; pas d'automatisation nouvelle des effets conditionnels.
+- Test dédié `tests/threat5.mjs` exécuté par GitHub Actions.
+
 ## 0.10.3 — Préservation des macros de lancement personnalisées (P1)
 - Les macros existantes ne sont plus mises à jour sur la seule correspondance de leur nom.
 - Chaque macro créée par H0D porte un flag de propriété explicite et mémorise sa dernière commande générée.

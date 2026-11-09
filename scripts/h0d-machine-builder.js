@@ -1,7 +1,8 @@
 import {ensureManagedLauncherMacro} from "./h0d-launcher-macro.js";
 import { THREAT4_MACHINES } from "./h0d-threat4.js";
+import { THREAT5_MACHINES } from "./h0d-threat5.js";
 const MODULE_ID = "h0d-machine-builder";
-const VERSION = "0.10.3";
+const VERSION = "0.11.0";
 const COMPONENT_PACK_LABEL = "H0D — Composants Machines";
 const WORLD_MACHINE_FOLDER = "H0D — Machines assemblées";
 
@@ -28,7 +29,7 @@ const TOKEN_SIZE_BY_CATEGORY = Object.freeze({
  * H0D Machine Builder v0.9.0
  * Foundry VTT v14 + Custom System Builder 6.x
  *
- * Menaces 1 à 4 complètes :
+ * Menaces 1 à 5 : fiches M5 validées, Clawstrider individuel M2, Moissonneur M5 V1 à confirmer.
  * - Menace 1 : Grazer de rite, Watcher, Strider, Burrower, Grazer sauvage
  * - Menace 2 : Redeye Watcher, Broadhead, Scrapper blessé, Scrapper standard/intact
  * - Menace 3 : Dent de Scie d'Aloy, Lancehorn, Longleg, Scrounger, Récolteur ELYS, Tisseur ELYS-9
@@ -735,7 +736,7 @@ const MACHINES = {
 
 };
 
-Object.assign(MACHINES, THREAT4_MACHINES);
+Object.assign(MACHINES, THREAT4_MACHINES, THREAT5_MACHINES);
 
 const MACHINE_PERCEPTION_PROFILES = Object.freeze({
   "grazer-rite":       {total:2, range:30},
@@ -758,7 +759,12 @@ const MACHINE_PERCEPTION_PROFILES = Object.freeze({
   "bellowback-fire":   {total:3, range:30},
   "bellowback-ice":    {total:3, range:30},
   "ravager-young":     {total:5, range:45},
-  "glouton-elys":      {total:6, range:60}
+  "glouton-elys":      {total:6, range:60},
+  "ravageur-sauvage":   {total:6, range:45},
+  "stalker-sauvage":    {total:6, range:45},
+  "clawstrider-sauvage":{total:5, range:30},
+  "fanghorn-sauvage":   {total:6, range:45},
+  "moissonneur-elys9": {total:6, range:45}
 });
 
 const SPECIAL_SENSOR_PROFILES = Object.freeze({
@@ -814,8 +820,8 @@ function notify(type, msg) { ui.notifications?.[type]?.(msg); }
 function clone(value) { return foundry.utils.deepClone(value); }
 function hasText(obj, key) { try { return JSON.stringify(obj ?? {}).includes(key); } catch { return false; } }
 
-function allMachineKeys(threat=null) {
-  const entries = Object.entries(MACHINES);
+function allMachineKeys(threat=null, {includeProvisional=false}={}) {
+  const entries = Object.entries(MACHINES).filter(([,machine]) => includeProvisional || machine.provisional !== true);
   if (threat == null) return entries.map(([key]) => key);
   return entries.filter(([, machine]) => Number(machine.actor?.threat) === Number(threat)).map(([key]) => key);
 }
@@ -830,6 +836,7 @@ function selectionKeys(selection) {
   if (selection === "threat-2") return allMachineKeys(2);
   if (selection === "threat-3") return allMachineKeys(3);
   if (selection === "threat-4") return allMachineKeys(4);
+  if (selection === "threat-5") return allMachineKeys(5);
   return [selection];
 }
 
@@ -853,6 +860,7 @@ function canonicalTemplate(key) {
 function machineWarnings(machine) {
   const piecePV = machine.pieces.reduce((sum, p) => sum + (p.countPV ? Number(p.pv || 0) : 0), 0);
   const warnings = [];
+  if (machine.provisional === true) warnings.push("PROFIL NUMÉRIQUE V1 NON VALIDÉ PAR LE MJ : fiche d’essai, aucune validation définitive.");
   if (piecePV !== Number(machine.actor.declaredModulesPV)) {
     warnings.push(`PV modules annoncés ${machine.actor.declaredModulesPV}, mais les lignes de composants totalisent +${piecePV}.`);
   }
@@ -1285,7 +1293,8 @@ function itemData(template, entry, folderId=null) {
     img: template.img || "icons/svg/item-bag.svg",
     folder: folderId,
     system: systemFromItemTemplate(template, entry.props),
-    flags: {[MODULE_ID]: {generated:true, machineKey:entry.machineKey, kind:entry.kind, sourceTemplateId:template.id}}
+    flags: {[MODULE_ID]: {generated:true, machineKey:entry.machineKey, kind:entry.kind, sourceTemplateId:template.id,
+      sourceValidation:MACHINES[entry.machineKey]?.validation ?? "valide"}}
   };
 }
 
@@ -1663,7 +1672,8 @@ function actorDataFromTemplate(template, machineKey, machine, folderId) {
     folder: folderId,
     system,
     prototypeToken,
-    flags: {[MODULE_ID]: {generated:true, machineKey, threat:Number(machine.actor.threat), blueprint:true, sourceTemplateId:template.id}}
+    flags: {[MODULE_ID]: {generated:true, machineKey, threat:Number(machine.actor.threat), blueprint:true, sourceTemplateId:template.id,
+      sourceValidation:machine.validation ?? "valide"}}
   };
 }
 
@@ -1678,6 +1688,7 @@ async function forceActorTemplateAndProps(actor, template, machine) {
     "flags.h0d-machine-builder.generated": true,
     "flags.h0d-machine-builder.machineKey": actor.getFlag(MODULE_ID, "machineKey") || null,
     "flags.h0d-machine-builder.threat": Number(machine.actor.threat),
+    "flags.h0d-machine-builder.sourceValidation": machine.validation ?? "valide",
     "flags.h0d-machine-builder.blueprint": true,
     "flags.h0d-machine-builder.sourceTemplateId": template.id
   });
@@ -2016,23 +2027,27 @@ async function openBuilder() {
   const threat2Options = allMachineKeys(2).map(key => `<option value="${key}">${MACHINES[key].label}</option>`).join("");
   const threat3Options = allMachineKeys(3).map(key => `<option value="${key}">${MACHINES[key].label}</option>`).join("");
   const threat4Options = allMachineKeys(4).map(key => `<option value="${key}">${MACHINES[key].label}</option>`).join("");
+  const threat5Options = allMachineKeys(5,{includeProvisional:true}).map(key => `<option value="${key}">${MACHINES[key].label}${MACHINES[key].provisional?" — CHIFFRES V1 NON VALIDÉS":""}</option>`).join("");
   const machineOptions = [
-    `<option value="all">Toutes les machines</option>`,
+    `<option value="all">Toutes les machines validées (hors V1)</option>`,
     `<option value="threat-1">Toutes les Menace 1</option>`,
     `<option value="threat-2">Toutes les Menace 2</option>`,
     `<option value="threat-3">Toutes les Menace 3</option>`,
     `<option value="threat-4">Toutes les Menace 4</option>`,
+    `<option value="threat-5">Toutes les Menace 5 validées</option>`,
     `<optgroup label="Menace 1">${threat1Options}</optgroup>`,
     `<optgroup label="Menace 2">${threat2Options}</optgroup>`,
     `<optgroup label="Menace 3">${threat3Options}</optgroup>`,
-    `<optgroup label="Menace 4">${threat4Options}</optgroup>`
+    `<optgroup label="Menace 4">${threat4Options}</optgroup>`,
+    `<optgroup label="Menace 5 (Moissonneur V1 non validée)">${threat5Options}</optgroup>`
   ].join("");
 
   await foundry.applications.api.DialogV2.wait({
     window: {title:`H0D — Machine Builder v${VERSION}`},
     content: `
       <div class="h0d-machine-batch" style="display:flex;flex-direction:column;gap:10px;">
-        <p><strong>Menaces 1 à 4.</strong> Génère la bibliothèque ou assemble directement les machines avec leurs pièces et attaques.</p>
+        <p><strong>Menaces 1 à 5.</strong> Génère la bibliothèque ou assemble directement les machines avec leurs pièces et attaques.</p>
+        <p style="opacity:.8">Clawstrider : Menace 2 par individu (3 coordonnés = rencontre Menace 5). Moissonneur ELYS-9 : chiffres V1 à confirmer, exclu des sélections groupées.</p>
       <p><strong>Tokens :</strong> Petite 1×1 · Moyenne 2×2 · Lourde 3×3 · Titan 4×4 · Prototype = taille explicite.</p>
         ${(() => {
           const t = detectedTemplatesText();
@@ -2070,7 +2085,7 @@ async function openBuilder() {
         <hr>
         <p style="font-size:.9em;opacity:.8;">
           <strong>Bibliothèque :</strong> ${COMPONENT_PACK_LABEL}<br>
-          <strong>Machines assemblées :</strong> Acteurs → ${WORLD_MACHINE_FOLDER} → Menace 1 / Menace 2 / Menace 3 / Menace 4<br>
+          <strong>Machines assemblées :</strong> Acteurs → ${WORLD_MACHINE_FOLDER} → Menace 1 / Menace 2 / Menace 3 / Menace 4 / Menace 5<br>
           L'assemblage réutilise les Items du compendium : tes images personnalisées suivent donc la machine.
         </p>
         <button type="button" data-h0d-run><i class="fa-solid fa-gears"></i> Exécuter</button>
@@ -2095,6 +2110,17 @@ async function openBuilder() {
         busy=true;button.disabled=true;button.textContent="Génération en cours…";
         status.textContent="Opération en cours…";
         try{
+          const provisional=selectionKeys(machine).filter(key=>MACHINES[key]?.provisional===true);
+          if(provisional.length){
+            const confirmedV1=await foundry.applications.api.DialogV2.confirm({
+              window:{title:"H0D Machines — Données V1 non validées"},
+              content:"<p>Les chiffres du <strong>Moissonneur ELYS-9</strong> sont une V1 non validée par le MJ.</p>"+
+                "<p>Cette opération importera ces valeurs <strong>provisoires</strong> dans Foundry. Continuer cet essai ?</p>",
+              yes:{label:"Importer la V1 pour essai",icon:"fa-solid fa-triangle-exclamation"},
+              no:{label:"Annuler"}
+            });
+            if(!confirmedV1){status.textContent="Import V1 annulé.";return;}
+          }
           if(mode==="replace"||(mode==="update"&&!["repair-missing","sync-perception"].includes(action))){
             const confirmed=await foundry.applications.api.DialogV2.confirm({
               window:{title:"H0D Machines — Confirmation"},
