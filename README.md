@@ -1,3 +1,15 @@
+## v0.12.1 — Validation définitive du Moissonneur ELYS-9
+
+Le dossier `Bestiaire_Machines_Menace_5_Fiches_Foundry(2).pdf` (9 novembre 2026) confirme **les cinq profils**, et valide définitivement les chiffres du Moissonneur ELYS-9.
+
+- **Moissonneur ELYS-9, Menace 5** : 110 PV (44 corps + 66 pièces), DEF 12, ATQ +7, PER +6/45 m, vitesse 9 m ou 6 m chargé, 9 composants et 10 capacités. Identité source `validation:"valide"`, `provisional:false`.
+- Suppression de la mention V1 dans la fiche et le menu. Le Moissonneur entre dans les générations groupées **Toutes les Menace 5** / **Toutes les machines validées**.
+- **Clawstrider** : toujours **Menace 2 individuel** ; les trois exemplaires coordonnés forment une rencontre Menace 5, sans Actor collectif. L'empreinte 2×2 reste une proposition technique.
+- Règles Intégrité v2 et récupération v0.12.0 inchangées. Effets de capture, arrimage, repli, etc. conservés en texte pour arbitrage MJ.
+- Une alerte générique demeure pour de futurs profils réellement provisoires.
+
+**Aucune migration automatique** des Actors/Items existants. Pour une fiche Moissonneur déjà créée en V1, mettre à jour explicitement la bibliothèque puis l'Actor en mode « Mettre à jour » dans un monde de test ; ce mode peut réappliquer les champs CSB et ne doit pas être utilisé sans sauvegarde sur une machine personnalisée.
+
 ## v0.12.0 — Récupération par composant
 
 Le **H0D Machine Builder** prépare les quatre champs de récupération dans les nouvelles pièces générées :

@@ -1,3 +1,11 @@
+## 0.12.1 — Moissonneur ELYS-9 validé
+
+- Dossier Menace 5 révisé : les cinq profils sont désormais validés par le MJ.
+- Moissonneur : statut `valide`, notes et libellés corrigés, avertissement de V1 supprimé.
+- Moissonneur inclus dans les sélections de groupe Menace 5 et Toutes les machines validées.
+- Aucun changement des PV, DEF, ATQ, des composants, des capacités ou des règles de récupération.
+- Génération et migration des anciens Actors uniquement à l'initiative du MJ ; tests de validation mis à jour.
+
 ## 0.12.0 — Récupération H0D par composant
 
 - Nouveau profil de récupération (rendement, charge entière, rareté, clé Catalogue exacte) à la génération des pièces.

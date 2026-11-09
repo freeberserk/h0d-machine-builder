@@ -1,5 +1,5 @@
 /* Menace 5 — Bestiaire_Machines_Menace_5_Fiches_Foundry(1).pdf (9 novembre 2026), pages 1–13.
- * Ravageur, Stalker, Clawstrider, Fanghorn validés. Moissonneur ELYS-9 : chiffres V1 à confirmer.
+ * Dossier Menace 5 v2 (09.11.2026) : les cinq profils sont validés par le MJ.
  * Clawstrider individuel M2 ; 3 individus coordonnés = rencontre M5, jamais Actor unique.
  * Les effets conditionnels, mises à terre, mines, captures et tactiques restent arbitrés par le MJ.
  * Le moteur Intégrité v2 et ses règles de transfert ne sont pas modifiés par ces données.
@@ -889,9 +889,9 @@ export const THREAT5_MACHINES = {
     ]
   },
   "moissonneur-elys9": {
-    "label": "Moissonneur ELYS-9 [V1 à confirmer]",
-    "provisional": true,
-    "validation": "v1-a-confirmer",
+    "label": "Moissonneur ELYS-9",
+    "provisional": false,
+    "validation": "valide",
     "actor": {
       "category": "Moyenne",
       "variant": "ELYS-9 blanc",
@@ -917,7 +917,7 @@ export const THREAT5_MACHINES = {
       "weaknesses": "Lame-préhenseur gauche; Lame-préhenseur droite; Réservoir hydraulique de levage; Moteur dorsal de rotation; Berceau d’arrimage ventral; Capteurs optiques et antennes; Pattes motrices principales; Plaques de céramique blanche; Châssis porteur ELYSIUM",
       "immunities": "Non précisées dans la fiche source",
       "focus": "Mante mécanique blanche SANS violet ; lames-préhenseurs, hydraulique, moteur dorsal, berceau ventral ; une batterie OU un noyau lourd, jamais machine entière.",
-      "notes": "44 PV corps +66 pièces =110 ; DEF corps 10 + plaques +1 + châssis +1 =12. Chargé : vitesse 6 m. Référence numériquement NON VALIDÉE, présente seulement pour essai en BAC ; un seul module lourd issu d'une carcasse neutralisée. ⚠ V1 À CONFIRMER. | ⚠ DONNÉES NUMÉRIQUES V1 NON VALIDÉES PAR LE MJ.",
+      "notes": "Fiche chiffrée validée par le MJ (dossier Menace 5 du 09.11.2026). 44 PV corps + 66 PV composants = 110 PV max ; DEF corps 10 + plaques +1 + châssis +1 = 12. Vitesse normale 9 m, 6 m chargé ; repli assisté 15 m à vide ou 12 m chargé (recharge 3). Une seule batterie OU un noyau lourd extrait d’une carcasse neutralisée ; jamais de machine entière. Capture, arrimage, interception, extraction et fuite : effets situationnels arbitrés par le MJ.",
       "perception": {
         "total": 6,
         "range": 45

@@ -2,7 +2,7 @@ import {ensureManagedLauncherMacro} from "./h0d-launcher-macro.js";
 import { THREAT4_MACHINES } from "./h0d-threat4.js";
 import { THREAT5_MACHINES } from "./h0d-threat5.js";
 const MODULE_ID = "h0d-machine-builder";
-const VERSION = "0.12.0";
+const VERSION = "0.12.1";
 const COMPONENT_PACK_LABEL = "H0D — Composants Machines";
 const WORLD_MACHINE_FOLDER = "H0D — Machines assemblées";
 
@@ -29,7 +29,7 @@ const TOKEN_SIZE_BY_CATEGORY = Object.freeze({
  * H0D Machine Builder v0.9.0
  * Foundry VTT v14 + Custom System Builder 6.x
  *
- * Menaces 1 à 5 : fiches M5 validées, Clawstrider individuel M2, Moissonneur M5 V1 à confirmer.
+ * Menaces 1 à 5 : cinq profils du dossier M5 validés, Clawstrider individuel M2.
  * - Menace 1 : Grazer de rite, Watcher, Strider, Burrower, Grazer sauvage
  * - Menace 2 : Redeye Watcher, Broadhead, Scrapper blessé, Scrapper standard/intact
  * - Menace 3 : Dent de Scie d'Aloy, Lancehorn, Longleg, Scrounger, Récolteur ELYS, Tisseur ELYS-9
@@ -860,7 +860,7 @@ function canonicalTemplate(key) {
 function machineWarnings(machine) {
   const piecePV = machine.pieces.reduce((sum, p) => sum + (p.countPV ? Number(p.pv || 0) : 0), 0);
   const warnings = [];
-  if (machine.provisional === true) warnings.push("PROFIL NUMÉRIQUE V1 NON VALIDÉ PAR LE MJ : fiche d’essai, aucune validation définitive.");
+  if (machine.provisional === true) warnings.push("Profil provisoire non validé par le MJ : utilisation d’essai uniquement.");
   if (piecePV !== Number(machine.actor.declaredModulesPV)) {
     warnings.push(`PV modules annoncés ${machine.actor.declaredModulesPV}, mais les lignes de composants totalisent +${piecePV}.`);
   }
@@ -2086,9 +2086,9 @@ async function openBuilder() {
   const threat2Options = allMachineKeys(2).map(key => `<option value="${key}">${MACHINES[key].label}</option>`).join("");
   const threat3Options = allMachineKeys(3).map(key => `<option value="${key}">${MACHINES[key].label}</option>`).join("");
   const threat4Options = allMachineKeys(4).map(key => `<option value="${key}">${MACHINES[key].label}</option>`).join("");
-  const threat5Options = allMachineKeys(5,{includeProvisional:true}).map(key => `<option value="${key}">${MACHINES[key].label}${MACHINES[key].provisional?" — CHIFFRES V1 NON VALIDÉS":""}</option>`).join("");
+  const threat5Options = allMachineKeys(5).map(key => `<option value="${key}">${MACHINES[key].label}</option>`).join("");
   const machineOptions = [
-    `<option value="all">Toutes les machines validées (hors V1)</option>`,
+    `<option value="all">Toutes les machines validées</option>`,
     `<option value="threat-1">Toutes les Menace 1</option>`,
     `<option value="threat-2">Toutes les Menace 2</option>`,
     `<option value="threat-3">Toutes les Menace 3</option>`,
@@ -2098,7 +2098,7 @@ async function openBuilder() {
     `<optgroup label="Menace 2">${threat2Options}</optgroup>`,
     `<optgroup label="Menace 3">${threat3Options}</optgroup>`,
     `<optgroup label="Menace 4">${threat4Options}</optgroup>`,
-    `<optgroup label="Menace 5 (Moissonneur V1 non validée)">${threat5Options}</optgroup>`
+    `<optgroup label="Menace 5">${threat5Options}</optgroup>`
   ].join("");
 
   await foundry.applications.api.DialogV2.wait({
@@ -2106,7 +2106,7 @@ async function openBuilder() {
     content: `
       <div class="h0d-machine-batch" style="display:flex;flex-direction:column;gap:10px;">
         <p><strong>Menaces 1 à 5.</strong> Génère la bibliothèque ou assemble directement les machines avec leurs pièces et attaques.</p>
-        <p style="opacity:.8">Clawstrider : Menace 2 par individu (3 coordonnés = rencontre Menace 5). Moissonneur ELYS-9 : chiffres V1 à confirmer, exclu des sélections groupées.</p>
+        <p style="opacity:.8">Clawstrider : Menace 2 par individu (3 coordonnés = rencontre Menace 5). Moissonneur ELYS-9 : fiche validée et incluse dans les Menace 5.</p>
       <p><strong>Tokens :</strong> Petite 1×1 · Moyenne 2×2 · Lourde 3×3 · Titan 4×4 · Prototype = taille explicite.</p>
         ${(() => {
           const t = detectedTemplatesText();
@@ -2169,16 +2169,17 @@ async function openBuilder() {
         busy=true;button.disabled=true;button.textContent="Génération en cours…";
         status.textContent="Opération en cours…";
         try{
+          // Conserver un contrôle générique pour de futurs profils non validés.
           const provisional=selectionKeys(machine).filter(key=>MACHINES[key]?.provisional===true);
           if(provisional.length){
-            const confirmedV1=await foundry.applications.api.DialogV2.confirm({
-              window:{title:"H0D Machines — Données V1 non validées"},
-              content:"<p>Les chiffres du <strong>Moissonneur ELYS-9</strong> sont une V1 non validée par le MJ.</p>"+
-                "<p>Cette opération importera ces valeurs <strong>provisoires</strong> dans Foundry. Continuer cet essai ?</p>",
-              yes:{label:"Importer la V1 pour essai",icon:"fa-solid fa-triangle-exclamation"},
+            const confirmedPreview=await foundry.applications.api.DialogV2.confirm({
+              window:{title:"H0D Machines — Profils non validés"},
+              content:"<p>Profils provisoires : "+provisional.map(key=>MACHINES[key].label).join(", ")+"</p>"+
+                "<p>Importer ces données pour essai malgré l'absence de validation MJ ?</p>",
+              yes:{label:"Importer pour essai",icon:"fa-solid fa-triangle-exclamation"},
               no:{label:"Annuler"}
             });
-            if(!confirmedV1){status.textContent="Import V1 annulé.";return;}
+            if(!confirmedPreview){status.textContent="Import provisoire annulé.";return;}
           }
           if(mode==="replace"||(mode==="update"&&!["repair-missing","sync-perception"].includes(action))){
             const confirmed=await foundry.applications.api.DialogV2.confirm({

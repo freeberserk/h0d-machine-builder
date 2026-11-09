@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
 const src=await readFile(new URL("../scripts/h0d-machine-builder.js", import.meta.url),"utf8");
-assert.match(src,/const VERSION = "0\.12\.0"/);
+assert.match(src,/const VERSION = "0\.12\.1"/);
 for (const key of [
   "H0D_Machine_Perception_Base",
   "H0D_Machine_Perception_Portee_Base",
