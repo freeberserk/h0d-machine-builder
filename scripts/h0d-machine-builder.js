@@ -1,6 +1,7 @@
+import {ensureManagedLauncherMacro} from "./h0d-launcher-macro.js";
 import { THREAT4_MACHINES } from "./h0d-threat4.js";
 const MODULE_ID = "h0d-machine-builder";
-const VERSION = "0.10.2";
+const VERSION = "0.10.3";
 const COMPONENT_PACK_LABEL = "H0D — Composants Machines";
 const WORLD_MACHINE_FOLDER = "H0D — Machines assemblées";
 
@@ -2120,16 +2121,13 @@ async function openBuilder() {
 }
 
 async function ensureLauncherMacro() {
-  if (!game.user.isGM) return;
-  const name = "H0D — Générateur composants";
-  let macro = game.macros?.getName(name);
-  const command = "game.h0dMachineBuilder.open();";
-  if (macro) {
-    if (macro.command !== command) await macro.update({command});
-    return;
-  }
-  await Macro.create({name,type:"script",scope:"global",img:"icons/svg/gears.svg",command});
-  notify("info", "H0D Machine Builder : macro de lancement créée.");
+  return ensureManagedLauncherMacro({
+    moduleId:MODULE_ID,
+    name:"H0D — Générateur composants",
+    command:"game.h0dMachineBuilder.open();",
+    img:"icons/svg/gears.svg",
+    notify:notify
+  });
 }
 
 Hooks.once("ready", async () => {
