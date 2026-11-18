@@ -1746,6 +1746,11 @@ async function syncPlacedTokensToCanonicalSize(actor, machine) {
 }
 
 function actorDataFromTemplate(template, machineKey, machine, folderId) {
+  // Images choisies pour les nouvelles fiches uniquement ; H0D Visuels est facultatif.
+  const visuels=game.h0dVisuels;
+  const visualChoice=visuels?.pickForBuilder?.({kind:"machine",key:machineKey,mode:"balanced"})??null;
+  const visualPortrait=visualChoice?.portrait?visuels.visualUrl(visualChoice.portrait):null;
+  const visualToken=visualChoice?.token?visuels.visualUrl(visualChoice.token):null;
   const system = clone(template.system ?? {});
   // La structure est créée depuis le template ; les valeurs finales sont injectées
   // dans une seconde phase après que CSB a terminé son initialisation.
@@ -1758,16 +1763,20 @@ function actorDataFromTemplate(template, machineKey, machine, folderId) {
   prototypeToken.actorLink = false;
   prototypeToken.width = tokenSize.width;
   prototypeToken.height = tokenSize.height;
+  if(visualToken)prototypeToken.texture={...(prototypeToken.texture??{}),src:visualToken};
 
   return {
     name: `${machine.label} — Menace ${Number(machine.actor.threat)}`,
     type: "character",
-    img: template.img || "systems/custom-system-builder/img/template-logo.svg",
+    img: visualPortrait || template.img || "systems/custom-system-builder/img/template-logo.svg",
     folder: folderId,
     system,
     prototypeToken,
-    flags: {[MODULE_ID]: {generated:true, machineKey, threat:Number(machine.actor.threat), blueprint:true, sourceTemplateId:template.id,
-      sourceValidation:machine.validation ?? "valide"}}
+    flags: {
+      [MODULE_ID]:{generated:true, machineKey, threat:Number(machine.actor.threat), blueprint:true, sourceTemplateId:template.id,
+        sourceValidation:machine.validation ?? "valide"},
+      ...(visualChoice?{"h0d-visuels":{selectedVariant:visualChoice.id,source:"machine-builder"}}:{})
+    }
   };
 }
 
