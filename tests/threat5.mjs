@@ -62,7 +62,7 @@ assert.equal(machines["moissonneur-elys9"].actor.category,"Moyenne");
 assert.match(machines["moissonneur-elys9"].actor.focus,/SANS violet/);
 const main=readFileSync(new URL("../scripts/h0d-machine-builder.js",import.meta.url),"utf8");
 assert.match(main,/import \{ THREAT5_MACHINES \} from "\.\/h0d-threat5\.js"/);
-assert.match(main,/Object\.assign\(MACHINES, THREAT4_MACHINES, THREAT5_MACHINES\)/);
+assert.match(main,/Object\.assign\(MACHINES, THREAT4_MACHINES, THREAT5_MACHINES, THREAT6_MACHINES\)/);
 assert.match(main,/includeProvisional=false/);
 assert.match(main,/if \(selection === "threat-5"\) return allMachineKeys\(5\)/);
 assert.match(main,/const provisional=selectionKeys\(machine\)/);
