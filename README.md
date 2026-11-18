@@ -1,3 +1,9 @@
+## H0D Visuels (intégration facultative en préparation)
+
+La création d'un **nouvel Actor Machine** peut utiliser `game.h0dVisuels.pickForBuilder({kind:"machine",key:machineKey,mode:"balanced"})`. Le portrait et l'image du token sont indépendants. Les dimensions de token proviennent toujours du gabarit machine. Les mises à jour des Actors existants conservent leurs images.
+
+Le module H0D Visuels est optionnel : son absence ne change pas le fonctionnement du Builder. Les fichiers privés restent dans le pack d'illustrations / sur The Forge, jamais intégrés au dépôt Machine Builder.
+
 ## v0.13.0 — Menace 6 : cinq profils structurés depuis le PDF fourni
 
 Source : `Bestiaire_Machines_Menace_6_Fiches_Foundry(1).pdf`, pages 1 à 6.
