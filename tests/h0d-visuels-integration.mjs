@@ -1,0 +1,12 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const s=readFileSync(new URL("../scripts/h0d-machine-builder.js",import.meta.url),"utf8");
+const data=s.slice(s.indexOf("function actorDataFromTemplate("),s.indexOf("async function forceActorTemplateAndProps("));
+assert.ok(data.includes('visuels?.pickForBuilder?.({kind:"machine",key:machineKey,mode:"balanced"})'));
+assert.ok(data.includes("img: visualPortrait || template.img"));
+assert.ok(data.includes("if(visualToken)prototypeToken.texture"));
+assert.ok(data.includes('source:"machine-builder"'));
+const create=s.slice(s.indexOf("async function assembleMachineOne("),s.indexOf("const sourceDocs = await libraryDocsForMachine("));
+assert.ok(create.includes('actorDataFromTemplate(machineTemplate, machineKey, machine, threatFolder.id)'));
+assert.ok(create.indexOf('actorDataFromTemplate(')>create.indexOf('if (!actor)'));
+console.log("OK — H0D Visuels Machine optionnel, tailles canoniques préservées.");
