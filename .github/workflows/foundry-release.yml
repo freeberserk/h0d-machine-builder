@@ -21,6 +21,7 @@ jobs:
           node tests/salvage-profiles.mjs
           node tests/batch-dialog.mjs
           node tests/perception-sync.mjs
+          node tests/h0d-visuels-integration.mjs
           node --check scripts/h0d-launcher-macro.js
           node tests/launcher-macro.test.mjs
           python3 -m json.tool module.json > /dev/null
