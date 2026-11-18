@@ -1,3 +1,13 @@
+## 0.13.0 — Import technique des cinq machines Menace 6
+
+- Ajoute `scripts/h0d-threat6.js` : Shell-Walker, Bellowback Feu, Bellowback Gel, Ravageur blanc, Corrupteur Faro.
+- Transcrit les PV, DEF, attaques et composants du PDF (28 pièces hors Corps + 17 attaques/capacités), y compris les règles d'asservissement Faro.
+- Sélection « Menace 6 » ajoutée au Builder, accessible en génération de bibliothèque seulement.
+- Les Actors incomplets sont bloqués pour éviter toute statistique inventée : attaque du Corrupteur, PER, tailles, sauvegardes, DD et portées absents du PDF.
+- Défenses des pièces et portées non renseignées stockées vides au lieu de zéros fictifs ; aucune PER calculée par défaut pour M6.
+- Tests de validation de source, intégrité, sélection et protection contre les imports incomplets.
+- Menaces 1–5 et règles de récupération non modifiées ; aucun Actor existant migré automatiquement.
+
 ## 0.12.1 — Moissonneur ELYS-9 validé
 
 - Dossier Menace 5 révisé : les cinq profils sont désormais validés par le MJ.

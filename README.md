@@ -1,3 +1,30 @@
+## v0.13.0 — Menace 6 : cinq profils structurés depuis le PDF fourni
+
+Source : `Bestiaire_Machines_Menace_6_Fiches_Foundry(1).pdf`, pages 1 à 6.
+Le statut de la source est conservé : **quatre profils validés pour le lot M6** et **Corrupteur Faro finalisé dans ce PDF**.
+
+| Profil | PV corps | PV des pièces | PV total | DEF intacte | ATQ source |
+|---|---:|---:|---:|---:|---|
+| Shell-Walker | 42 | 98 | 140 | 15 | +8 |
+| Bellowback Feu | 80 | 70 | 150 | 15 | +8 |
+| Bellowback Gel | 80 | 70 | 150 | 15 | +8 |
+| Ravageur blanc | 71 | 74 | 145 | 15 | +8 |
+| Corrupteur Faro | 58 | 72 | 130 | 11 | **Non indiqué** |
+
+**28 composants destructibles et 17 attaques/capacités** sont enregistrés dans `scripts/h0d-threat6.js`. La ligne `Corps` du PDF est traduite en **PV du corps** de l'Actor, elle n'est pas dupliquée comme Item destructible. Le Shell-Walker a DEF corps 11 + bouclier +4 = DEF intacte 15. Pour les autres, aucun bonus de pièce n'est déduit sans source. Les explosions sans rayon ni DD connus sont des textes MJ, non des effets automatisés. Le Corrupteur conserve l'asservissement (jusqu'à 3 machines pour 6 niveaux de Menace), la Frénésie Faro et ses règles de noyau central.
+
+### Statut Foundry : bibliothèque de travail, pas Actors prêts au combat
+
+Les profils M6 n'apportent **pas tous les champs obligatoires** du template Machine : taille/catégorie du token, DEF de chaque pièce, PER et portée, DD Scan/Piratage, sauvegardes, initiative/vitesse (sauf Corrupteur), DD capacités (sauf Corrupteur) et **ATQ du Corrupteur**. Les portées exactes de plusieurs attaques à distance manquent aussi. Ces absences restent **`null` ou des champs vides**, jamais des valeurs supposées.
+
+- Le menu affiche désormais **Menace 6 — fiches synthétiques** et l'option **Toutes les Menace 6**.
+- L'action **Générer / mettre à jour la bibliothèque** est autorisée pour les 5 profils : les pièces et attaques ont leurs valeurs connues, et les valeurs inconnues restent vides.
+- Les autres actions qui modifieraient un Actor (Assembler, Synchroniser champs manquants, Synchroniser PER/DET) sont **bloquées** tant qu'un profil M6 a `importReady:false`. Les générations groupées habituelles `Toutes les machines validées` ne les incluent donc pas.
+- Pour les récupérations : le canon dorsal du Ravageur blanc est explicitement récupérable selon le PDF ; sa conversion automatique en PM n'est pas autorisée tant que la pièce intacte n'est pas référencée dans le Catalogue.
+- Aucun Item/Actor/stock préexistant n'est modifié automatiquement, et les Menaces 1–5, l'Intégrité v2 et les règles de récupération déjà établies restent inchangées.
+
+Cette distinction permet de **conserver l'intégralité des données du PDF** dans GitHub sans créer de fiches jouables contenant des statistiques inventées. Pour rendre les M6 assemblables, il faudra renseigner les champs manquants et retirer leur verrou `importReady:false` après validation MJ.
+
 ## v0.12.1 — Validation définitive du Moissonneur ELYS-9
 
 Le dossier `Bestiaire_Machines_Menace_5_Fiches_Foundry(2).pdf` (9 novembre 2026) confirme **les cinq profils**, et valide définitivement les chiffres du Moissonneur ELYS-9.

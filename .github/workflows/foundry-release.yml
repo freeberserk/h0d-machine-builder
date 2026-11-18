@@ -15,7 +15,9 @@ jobs:
         run: |
           node --check scripts/h0d-machine-builder.js
           node --check scripts/h0d-threat5.js
+          node --check scripts/h0d-threat6.js
           node tests/threat5.mjs
+          node tests/threat6.mjs
           node tests/salvage-profiles.mjs
           node tests/batch-dialog.mjs
           node tests/perception-sync.mjs

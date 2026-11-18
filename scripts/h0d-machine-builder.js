@@ -1,8 +1,9 @@
 import {ensureManagedLauncherMacro} from "./h0d-launcher-macro.js";
 import { THREAT4_MACHINES } from "./h0d-threat4.js";
 import { THREAT5_MACHINES } from "./h0d-threat5.js";
+import { THREAT6_MACHINES } from "./h0d-threat6.js";
 const MODULE_ID = "h0d-machine-builder";
-const VERSION = "0.12.1";
+const VERSION = "0.13.0";
 const COMPONENT_PACK_LABEL = "H0D — Composants Machines";
 const WORLD_MACHINE_FOLDER = "H0D — Machines assemblées";
 
@@ -29,7 +30,7 @@ const TOKEN_SIZE_BY_CATEGORY = Object.freeze({
  * H0D Machine Builder v0.9.0
  * Foundry VTT v14 + Custom System Builder 6.x
  *
- * Menaces 1 à 5 : cinq profils du dossier M5 validés, Clawstrider individuel M2.
+ * Menaces 1 à 5 : profils validés. Menace 6 : 5 fiches synthétiques pour bibliothèque uniquement, Actor non assemblable sans champs manquants.
  * - Menace 1 : Grazer de rite, Watcher, Strider, Burrower, Grazer sauvage
  * - Menace 2 : Redeye Watcher, Broadhead, Scrapper blessé, Scrapper standard/intact
  * - Menace 3 : Dent de Scie d'Aloy, Lancehorn, Longleg, Scrounger, Récolteur ELYS, Tisseur ELYS-9
@@ -736,7 +737,7 @@ const MACHINES = {
 
 };
 
-Object.assign(MACHINES, THREAT4_MACHINES, THREAT5_MACHINES);
+Object.assign(MACHINES, THREAT4_MACHINES, THREAT5_MACHINES, THREAT6_MACHINES);
 
 const MACHINE_PERCEPTION_PROFILES = Object.freeze({
   "grazer-rite":       {total:2, range:30},
@@ -804,6 +805,10 @@ function sensorProfile(machineKey, piece) {
 }
 
 function machinePerceptionProfile(machineKey, machine) {
+  // Interdire l'ancien fallback Menace+1 / 30 m sur les nouvelles fiches M6 incomplètes.
+  const missingM6=machine?.importReady===false && Number(machine?.actor?.threat)===6 &&
+    !MACHINE_PERCEPTION_PROFILES[machineKey];
+  if(missingM6)return {total:null,base:null,range:null};
   const desired = MACHINE_PERCEPTION_PROFILES[machineKey]
     ?? {total:Math.max(2, Number(machine?.actor?.threat ?? 1) + 1), range:30};
   const sensorBonus = (machine?.pieces ?? [])
@@ -820,8 +825,12 @@ function notify(type, msg) { ui.notifications?.[type]?.(msg); }
 function clone(value) { return foundry.utils.deepClone(value); }
 function hasText(obj, key) { try { return JSON.stringify(obj ?? {}).includes(key); } catch { return false; } }
 
-function allMachineKeys(threat=null, {includeProvisional=false}={}) {
-  const entries = Object.entries(MACHINES).filter(([,machine]) => includeProvisional || machine.provisional !== true);
+function allMachineKeys(threat=null, {includeProvisional=false,includeIncomplete=false}={}) {
+  // « Validé dans le PDF » n'est pas synonyme de fiche CSB entièrement chiffrée.
+  // Ne jamais inclure des fiches d'Actor incomplètes dans les générations groupées habituelles.
+  const entries = Object.entries(MACHINES).filter(([,machine]) =>
+    (includeProvisional || machine.provisional !== true) &&
+    (includeIncomplete || machine.importReady !== false));
   if (threat == null) return entries.map(([key]) => key);
   return entries.filter(([, machine]) => Number(machine.actor?.threat) === Number(threat)).map(([key]) => key);
 }
@@ -837,6 +846,7 @@ function selectionKeys(selection) {
   if (selection === "threat-3") return allMachineKeys(3);
   if (selection === "threat-4") return allMachineKeys(4);
   if (selection === "threat-5") return allMachineKeys(5);
+  if (selection === "threat-6") return allMachineKeys(6,{includeIncomplete:true});
   return [selection];
 }
 
@@ -857,10 +867,33 @@ function canonicalTemplate(key) {
   }
 }
 
+function missingMachineFields(machine) {
+  if(machine?.importReady!==false) return [];
+  const a=machine.actor??{};
+  const required=["category","attack","initiative","speed","fortitude","reflex","will",
+    "abilityDC","scanDC","hackDC","hackable"];
+  const missing=required.filter(key=>a[key]===undefined||a[key]===null||a[key]==="");
+  if(a.perception?.total===undefined||a.perception?.total===null)missing.push("PER totale");
+  if(a.perception?.range===undefined||a.perception?.range===null)missing.push("portée PER");
+  if(machine.pieces?.some(piece=>piece.def===null||piece.def===undefined))missing.push("DEF des pièces");
+  if(machine.weapons?.some(weapon=>["Distance","Zone"].includes(weapon.mode) &&
+      (weapon.range===null||weapon.range===undefined)))missing.push("portée(s) d'attaque");
+  return missing;
+}
+function assertMachineReadyForActor(machine) {
+  if(machine?.importReady===false){
+    const missing=missingMachineFields(machine);
+    throw new Error(`${machine.label} : fiche synthétique M6 non assemblable (champs non fournis dans le PDF : ${missing.join(", ")||"statut import incomplet"}). La bibliothèque des pièces et attaques reste accessible. Aucun chiffre n'est remplacé par un zéro arbitraire.`);
+  }
+}
+
 function machineWarnings(machine) {
   const piecePV = machine.pieces.reduce((sum, p) => sum + (p.countPV ? Number(p.pv || 0) : 0), 0);
   const warnings = [];
   if (machine.provisional === true) warnings.push("Profil provisoire non validé par le MJ : utilisation d’essai uniquement.");
+  if (machine.importReady===false)
+    warnings.push("Fiche synthétique M6 : valeurs manquantes pour Actor Foundry : "+missingMachineFields(machine).join(", ")+
+      ". Import de la bibliothèque uniquement ; ne pas déduire de chiffres.");
   if (piecePV !== Number(machine.actor.declaredModulesPV)) {
     warnings.push(`PV modules annoncés ${machine.actor.declaredModulesPV}, mais les lignes de composants totalisent +${piecePV}.`);
   }
@@ -1281,7 +1314,7 @@ function pieceEntry(machineKey, machine, p) {
     H0D_Composant_Protection_Corps: inferBodyProtection(p),
     H0D_Composant_PV_Actuels: Number(p.pv),
     H0D_Composant_PV_Max: Number(p.pv),
-    H0D_Composant_DEF_Base: Number(p.def),
+    H0D_Composant_DEF_Base: p.def===null||p.def===undefined ? "" : Number(p.def),
     H0D_Composant_Bonus_DEF_Machine: Number(p.bonusDef || 0),
     H0D_Composant_DD_Demontage: Number(p.ddDemontage ?? 15),
     H0D_Composant_DD_Detachement: Number(p.ddDetachement ?? 15),
@@ -1323,7 +1356,7 @@ function weaponEntry(machineKey, machine, w) {
     H0D_ArmeMachine_Degats: w.dmg,
     H0D_ArmeMachine_Type_Degats: w.dmgType,
     H0D_ArmeMachine_Element: w.element ?? "Aucun",
-    H0D_ArmeMachine_Portee: String(w.range ?? 0),
+    H0D_ArmeMachine_Portee: w.range===null ? "" : String(w.range ?? 0),
     H0D_ArmeMachine_Zone: w.zone ?? "",
     H0D_ArmeMachine_Recharge: Number(w.recharge || 0),
     H0D_ArmeMachine_Recharge_Compteur: 0,
@@ -1470,6 +1503,7 @@ function canonicalEntryMap(machineKey) {
 async function repairEmbeddedMissingOne(machineKey) {
   const machine = MACHINES[machineKey];
   if (!machine) throw new Error(`Machine inconnue : ${machineKey}`);
+  assertMachineReadyForActor(machine);
 
   const aliases = machineKeyAliases(machineKey);
   const actor = Array.from(game.actors ?? []).find(a =>
@@ -1545,6 +1579,7 @@ const PERCEPTION_COMPONENT_FIELDS = Object.freeze([
 async function syncPerceptionOne(machineKey) {
   const machine = MACHINES[machineKey];
   if (!machine) throw new Error(`Machine inconnue : ${machineKey}`);
+  assertMachineReadyForActor(machine);
 
   const aliases = machineKeyAliases(machineKey);
   const actor = Array.from(game.actors ?? []).find(a =>
@@ -1907,6 +1942,7 @@ async function libraryDocsForMachine(machineKey) {
 async function assembleMachineOne(machineKey, mode="update") {
   const machine = MACHINES[machineKey];
   if (!machine) throw new Error(`Machine inconnue : ${machineKey}`);
+  assertMachineReadyForActor(machine);
   const machineTemplate = findMachineTemplate();
   if (!machineTemplate) {
     throw new Error(
@@ -2038,6 +2074,9 @@ function mergeStats(total, add) {
 
 async function runAction(action, machineSelection, mode) {
   const keys = selectionKeys(machineSelection);
+  // Prévenir TOUTE écriture d'Actor avant de parcourir un lot partiellement renseigné.
+  if(action!=="library")
+    for(const key of keys)assertMachineReadyForActor(MACHINES[key]);
 
   if (action === "library") {
     const total = {created:0, updated:0, replaced:0, skipped:0};
@@ -2087,6 +2126,8 @@ async function openBuilder() {
   const threat3Options = allMachineKeys(3).map(key => `<option value="${key}">${MACHINES[key].label}</option>`).join("");
   const threat4Options = allMachineKeys(4).map(key => `<option value="${key}">${MACHINES[key].label}</option>`).join("");
   const threat5Options = allMachineKeys(5).map(key => `<option value="${key}">${MACHINES[key].label}</option>`).join("");
+  const threat6Options = allMachineKeys(6,{includeIncomplete:true})
+    .map(key=>`<option value="${key}">${MACHINES[key].label} — fiche synthétique (bibliothèque)</option>`).join("");
   const machineOptions = [
     `<option value="all">Toutes les machines validées</option>`,
     `<option value="threat-1">Toutes les Menace 1</option>`,
@@ -2094,18 +2135,21 @@ async function openBuilder() {
     `<option value="threat-3">Toutes les Menace 3</option>`,
     `<option value="threat-4">Toutes les Menace 4</option>`,
     `<option value="threat-5">Toutes les Menace 5 validées</option>`,
+    `<option value="threat-6">Toutes les Menace 6 (bibliothèque / données manquantes)</option>`,
     `<optgroup label="Menace 1">${threat1Options}</optgroup>`,
     `<optgroup label="Menace 2">${threat2Options}</optgroup>`,
     `<optgroup label="Menace 3">${threat3Options}</optgroup>`,
     `<optgroup label="Menace 4">${threat4Options}</optgroup>`,
-    `<optgroup label="Menace 5">${threat5Options}</optgroup>`
+    `<optgroup label="Menace 5">${threat5Options}</optgroup>`,
+    `<optgroup label="Menace 6 — fiches synthétiques">${threat6Options}</optgroup>`
   ].join("");
 
   await foundry.applications.api.DialogV2.wait({
     window: {title:`H0D — Machine Builder v${VERSION}`},
     content: `
       <div class="h0d-machine-batch" style="display:flex;flex-direction:column;gap:10px;">
-        <p><strong>Menaces 1 à 5.</strong> Génère la bibliothèque ou assemble directement les machines avec leurs pièces et attaques.</p>
+        <p><strong>Menaces 1 à 6.</strong> Génère la bibliothèque ou assemble les machines dont les fiches sont complètes.</p>
+        <p style="opacity:.85">Menace 6 : cinq profils du PDF sont consultables et leurs composants/attaques peuvent être générés en bibliothèque. Les Actors M6 restent bloqués tant que les statistiques absentes du PDF ne sont pas définies par le MJ.</p>
         <p style="opacity:.8">Clawstrider : Menace 2 par individu (3 coordonnés = rencontre Menace 5). Moissonneur ELYS-9 : fiche validée et incluse dans les Menace 5.</p>
       <p><strong>Tokens :</strong> Petite 1×1 · Moyenne 2×2 · Lourde 3×3 · Titan 4×4 · Prototype = taille explicite.</p>
         ${(() => {
