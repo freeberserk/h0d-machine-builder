@@ -1,3 +1,31 @@
+## v0.14.0 — Menace 6 canonique du 19 novembre 2026
+
+Remplacement intégral du lot M6 synthétique par le dossier validé `Bestiaire_Machines_Menace_6_Fiches_Foundry(2).pdf` (13 pages). Les **cinq Actors** sont maintenant assemblables, avec **45 composants destructibles** et **25 attaques ou capacités**.
+
+| Machine | PV corps | PV pièces | PV max | DEF | ATQ | Initiative | Token | Piratage |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| Shell-Walker blindé | 42 | 98 | 140 | 13 | +8 | +2 | 2×2 | DD21 |
+| Bellowback de Feu sauvage | 54 | 96 | 150 | 12 | +8 | +2 | 3×3 | DD21 |
+| Bellowback de Glace sauvage | 54 | 96 | 150 | 12 | +8 | +2 | 3×3 | DD21 |
+| Ravageur blanc ELYSIUM | 45 | 90 | 135 | 13 | +8 | +5 | 2×2 | DD22 |
+| Corrupteur Faro | 54 | 76 | 130 | 11 | +8 | +5 | 2×2 | Non piratable |
+
+**Conventions importantes :**
+- `actor.defense` reste la DEF **du corps = 10**. Les composants fournissent les bonus cumulés validés : Shell-Walker +2 bouclier/+1 châssis, Bellowback +1 plaques/+1 châssis, Ravageur +2 plaques/+1 châssis, Corrupteur +1 châssis. La DEF intacte suit automatiquement les composants.
+- « Grande / 3×3 » du dossier Bellowback est enregistrée comme catégorie canonique dans `sourceCategory` et correspond à la valeur technique **`Lourde`** du menu Custom System Builder (qui ne comporte pas « Grande ») ; `tokenSize:3` fixe bien le gabarit **3×3** sans changer le Template Manager.
+- **PER/Focus** : Shell-Walker +7/45 m, Bellowback +6/45 m, Ravageur blanc +7/45 m, Corrupteur Faro +7/45 m. Les capteurs -4 deviennent des bonus de capteur actif +4, pris en compte sans doubler la PER.
+- **Shell-Walker** : interception +1 DEF une fois par round, contre un seul tir le visant (réaction, bouclier fonctionnel), distincte de la DEF permanente ; la deuxième pince n'ajoute pas d'attaque gratuite.
+- **Bellowback sauvages** : charge, souffles, nappes et statuts détaillés ; explosion 5d6/6 m/DD17 des réservoirs **seulement sous destruction élémentaire adaptée**, volontairement laissée en texte à arbitrer par le MJ, sans déclenchement automatique inconditionnel.
+- **Ravageur blanc** : 135 PV, lacération en trois paliers selon les griffes, -3 m par griffe arrière détruite, bond interrompu selon châssis/griffes, piratage DD22. Le canon blanc reste récupérable **entier si démonté proprement**, sans conversion automatique en plaques ni objet rare inventé.
+- **Corrupteur Faro** : `hackable:false`, `hackDC:null`, noyau central unique 18 PV avec surcharge 3d6 au corps, contrôle jusqu'à trois machines totalisant six niveaux de menace, tableau DD M1=17 à M6=12 ; Frénésie et asservissement non cumulables, lance-grenades indépendant et Frénésie active persistante après destruction du noyau.
+- Les automatismes non pris en charge par le moteur (réaction Interception, éléments conditionnels, effets Faro, contrôle de pièces) sont conservés **dans les descriptions des Items** et restent à appliquer par le MJ.
+
+**Anciennes clés M6** : `shell-walker`, `bellowback-feu`, `bellowback-gel`, `ravageur-blanc`, `corrupteur-faro` deviennent des alias des nouvelles clés suffixées `-m6`. Cela évite les doubles Actors au prochain **import explicite** et réutilise les entrées de bibliothèque portant encore leurs noms historiques. En mode **Mettre à jour** ou **Remplacer** la bibliothèque, seules les anciennes entrées **marquées générées par H0D** et devenues obsolètes / dupliquées sont retirées ; les entrées personnalisées non générées sont conservées.
+
+**Aucune migration automatique à l'installation** : les Actors existants, les inventaires et les tokens déjà placés en scène ne sont pas modifiés. Le bouton « Assembler » en mode « Mettre à jour » reste une action **explicite et réinitialise les Items générés** de l'Actor visé. Faire une copie de sauvegarde ou tester dans BAC avant toute mise à jour d'un Actor personnalisé. Pour les M6, seules les dimensions du **prototype du token** sont appliquées lors d'un assemblage, jamais celles de tokens déjà placés.
+
+Les Menaces 1 à 5, l'Intégrité v2 et le système de récupération validé restent inchangés.
+
 ## v0.13.0 — Menace 6 : cinq profils structurés depuis le PDF fourni
 
 Source : `Bestiaire_Machines_Menace_6_Fiches_Foundry(1).pdf`, pages 1 à 6.

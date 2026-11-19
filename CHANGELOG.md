@@ -1,3 +1,14 @@
+## 0.14.0 — Menace 6 : remplacement complet par les fiches canoniques
+
+- 5 clés M6 remplacées par les clés canoniques `-m6`, 5 Actors désormais assemblables, 45 pièces destructibles / 25 attaques/capacités.
+- Corrige les PV, DEF, protections, tailles, initiative, sauvegardes, PER, DD Scan/Piratage, attaques et pertes de pièces du nouveau PDF.
+- Corrupteur non piratable et Frénésie distincte de l'asservissement ; Bellowback sauvages 3×3 distincts des M4.
+- Conserve les effets conditionnels non automatisés dans les descriptions MJ.
+- Mappage de « Grande » (source) vers « Lourde » (select CSB) pour le token 3×3.
+- Aliases des cinq anciennes clés, nettoyage sécurisé des anciennes pièces/attaques générées uniquement sur action explicite de mise à jour de la bibliothèque.
+- Aucune modification automatique des Actors / tokens en scène au chargement ; la régénération explicite de l'Actor reste destructive pour les Items générés.
+- Tests M6 canon et non-régression Menaces 1–5.
+
 ## 0.13.0 — Import technique des cinq machines Menace 6
 
 - Ajoute `scripts/h0d-threat6.js` : Shell-Walker, Bellowback Feu, Bellowback Gel, Ravageur blanc, Corrupteur Faro.

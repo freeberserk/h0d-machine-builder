@@ -1,8 +1,8 @@
 {
   "id": "h0d-machine-builder",
   "title": "H0D Machine Builder",
-  "description": "Générateur de machines H0D — Menaces 1 à 6 (M6 bibliothèque provisoire), Intégrité v2, PER/DET, capteurs spécialisés et synchronisation non destructive.",
-  "version": "0.13.0",
+  "description": "Générateur de machines H0D — Menaces 1 à 6 (M6 canoniques et assemblables), Intégrité v2, PER/DET, capteurs spécialisés et synchronisation non destructive.",
+  "version": "0.14.0",
   "authors": [
     {
       "name": "JDR Zero Dawn"
