@@ -108,7 +108,7 @@ assert.equal(act(faro,"Lance-piques").range,24);
 assert.equal(act(faro,"Lance-piques").recharge,2);
 assert.equal(act(faro,"Grenade Frénésie Faro").range,24);
 assert.equal(act(faro,"Grenade Frénésie Faro").recharge,3);
-assert.match(act(faro,"Grenade Frénésie Faro").effect,/ne se cumule pas avec l'asservissement/);
+assert.match(act(faro,"Grenade Frénésie Faro").effect,/ne se cumule pas avec l'asservissement/i);
 assert.match(act(faro,"Grenade Frénésie Faro").effect,/indépendant/);
 assert.match(act(faro,"Asservissement Faro").effect,/M1 17, M2 16, M3 15, M4 14, M5 13, M6 12/);
 assert.match(act(faro,"Asservissement Faro").effect,/3 machines totalisant 6 Menaces/);
